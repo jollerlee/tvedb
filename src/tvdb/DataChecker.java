@@ -1,11 +1,11 @@
 package tvdb;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,20 +49,9 @@ public class DataChecker {
 		WebDriver driver = new FirefoxDriver(profile);
         
 		Utils.openTvdb(driver, "資料檢核");
-
-        SortedMap<String, List<String>> tableUnits = new TreeMap<String, List<String>>();
-        Set<String> unitSet = new HashSet<String>();
-        
-		Utils.obtainTableUnitMapping(driver, tableUnits, unitSet);
-		
-        for(String unit: unitSet) {
-    		new File(output_dir, "單位/"+unit).mkdir();
-        }
-        
-        driver.navigate().back();
         (new WebDriverWait(driver, 10)).until(ExpectedConditions.elementToBeClickable(By.partialLinkText("資 料 檢 核")));
         driver.findElement(By.partialLinkText("資 料 檢 核")).click();
-        
+
         // Cross-table checkers
         
         remove關閉視窗Button(driver);
@@ -71,7 +60,7 @@ public class DataChecker {
         
         waitFor關閉視窗Button(driver);
         
-        downloadChecker(driver, tableUnits);
+        downloadChecker(driver);
         
         // Other checkers
         
@@ -81,13 +70,24 @@ public class DataChecker {
         
         waitFor關閉視窗Button(driver);
         
-        downloadChecker(driver, tableUnits);
+        downloadChecker(driver);
+        
+        // Start to copy checker result files to unit folders
+        Map<String, List<String>> tableUnits = new HashMap<String, List<String>>();
+        Set<String> unitSet = new HashSet<String>();
+        
+		Utils.obtainTableUnitMapping(driver, tableUnits, unitSet);
+		
+        for(String unit: unitSet) {
+    		new File(output_dir, "單位/"+unit).mkdir();
+        }
+        
+        copyNoDataFilesToUnits(tableUnits);
         
         ((JavascriptExecutor)driver).executeScript("alert('Done!')");
 	}
 
-	private static void downloadChecker(WebDriver driver,
-			SortedMap<String, List<String>> tableUnits) {
+	private static void downloadChecker(WebDriver driver) {
 		// The checker's select-tag reloads every time a item is clicked, thus has to be addressed by index
         Select checkers = new Select(driver.findElement(By.name("TabName")));
         int checkerCount = checkers.getOptions().size();
@@ -134,37 +134,44 @@ public class DataChecker {
                 	continue;
                 }
              
-                Set<String> units = new HashSet<String>();
-                
-                // Parse checker name to figure out related tables
-                Matcher tableFinder = Pattern.compile("\\d+(_|-)\\d+((_|-)\\d+)?").matcher(checkerName);
-                while(tableFinder.find()) {
-                	List<String> unit = tableUnits.get("table"+tableFinder.group().replace('-', '_'));
-                	if(unit == null || unit.isEmpty()) {
-                		System.err.println("[table"+tableFinder.group()+"]: no unit-in-charge");
-                	}
-                	else {
-                    	units.addAll(unit);
-                	}
-                }
-                
-                if(units.isEmpty()) {
-                	System.err.println("["+renamed.getName()+"]: no unit-in-charge");
-                	continue;
-                }
-                
-                for(String unit: units) {
-                	try {
-						FileUtils.copyFileToDirectory(renamed, new File(output_dir, "單位/"+unit));
-						System.out.println("["+renamed.getName()+"] => ["+unit+"]");
-					} catch (IOException e) {
-						System.err.println("["+renamed.getName()+"] => ["+unit+"]: failed");
-					}
-                }
             }
         }
 	}
 
+	private static void copyNoDataFilesToUnits(Map<String, List<String>> tableUnits) {
+		File[] checkers = new File(output_dir, "檢核").listFiles();
+		
+		for(File checker: checkers) {
+	        Set<String> units = new HashSet<String>();
+	        
+	        // Parse checker name to figure out related tables
+	        Matcher tableFinder = Pattern.compile("\\d+(_|-)\\d+((_|-)\\d+)?").matcher(checker.getName());
+	        while(tableFinder.find()) {
+	        	List<String> unit = tableUnits.get("table"+tableFinder.group().replace('-', '_'));
+	        	if(unit == null || unit.isEmpty()) {
+	        		System.err.println("[table"+tableFinder.group()+"]: no unit-in-charge");
+	        	}
+	        	else {
+	            	units.addAll(unit);
+	        	}
+	        }
+	        
+	        if(units.isEmpty()) {
+	        	System.err.println("["+checker.getName()+"]: no unit-in-charge");
+	        	continue;
+	        }
+	        
+	        for(String unit: units) {
+	        	try {
+					FileUtils.copyFileToDirectory(checker, new File(output_dir, "單位/"+unit));
+					System.out.println("["+checker.getName()+"] => ["+unit+"]");
+				} catch (IOException e) {
+					System.err.println("["+checker.getName()+"] => ["+unit+"]: failed");
+				}
+	        }
+		}
+	}
+	
 	private static void waitFor關閉視窗Button(WebDriver driver) {
 		(new WebDriverWait(driver, 10)).until(
         		ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='button'][value='關閉視窗']")));
