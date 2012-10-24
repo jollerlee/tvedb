@@ -20,50 +20,6 @@ public class AssessmentDownloader {
     private static final File output_dir = new File("D:/work/評鑑/download");
     private static final File download_dir = new File(output_dir, "temp");
     
-    private static enum OutputType { 
-    	EXCEL("Excel", ".xls", "轉存Excel", download_dir), 
-    	PDF("PDF", ".pdf", "按此列印", Utils.BULLZIP_DIR);
-    	
-//    	public final String name;
-    	public final String ext;
-		private String buttonName;
-		private File outputFolder;
-		private File generatedFileFolder;
-    	
-    	OutputType(String name, String ext, String buttonName, File genFileFolder) {
-//    		this.name = name;
-    		this.ext = ext;
-    		this.buttonName = buttonName;
-    		this.outputFolder = new File(output_dir, name);
-    		this.generatedFileFolder = genFileFolder;
-    		
-    		outputFolder.mkdirs();
-    		generatedFileFolder.mkdirs();
-    		
-	        for(File f: generatedFileFolder.listFiles()) {
-	        	if(f.isFile()) {
-	        		f.delete();
-	        	}
-	        }
-    	}
-    	
-    	void download(WebDriver driver, String fileName) {
-    		driver.findElement(By.cssSelector("input[type='button'][value='"+buttonName+"']")).click();
-    		File newFile = Utils.waitForGeneratedFile(generatedFileFolder);
-    		File finalFile = new File(outputFolder, fileName);
-    		finalFile.getParentFile().mkdirs();
-    		
-            if(!newFile.renameTo(finalFile)) {
-            	System.out.println("Failed to rename ["+newFile.getName()+"] to "+finalFile.getPath());
-            	newFile.renameTo(new File(finalFile.getParentFile(), newFile.getName()));
-            }
-    	}
-    	
-    	File getOutputFolder() {
-    		return this.outputFolder;
-    	}
-    };
-    
 	/**
 	 * @param args
 	 * @throws InterruptedException 
@@ -110,6 +66,13 @@ public class AssessmentDownloader {
         mainWin = newWin;
         newWin = null;
         
+        for(OutputType type: EnumSet.allOf(OutputType.class)) {
+        	new File(output_dir, type.name+"/"+"行政類").mkdirs();
+        	new File(output_dir, type.name+"/"+"老人照顧科").mkdirs();
+        	new File(output_dir, type.name+"/"+"護理科").mkdirs();
+        	new File(output_dir, type.name+"/"+"化妝品應用科").mkdirs();
+        }
+        
         driver.findElement(By.partialLinkText("「行政類」")).click();
         downloadTables(driver, "行政類", EnumSet.allOf(OutputType.class));
         
@@ -118,17 +81,17 @@ public class AssessmentDownloader {
         Select unit = new Select(driver.findElement(By.id("setUnits")));
         unit.selectByVisibleText("老人照顧科");
         Thread.sleep(1000); //TODO use something more robust instead
-        downloadTables(driver, "專業類科-老人照顧科", EnumSet.allOf(OutputType.class));
+        downloadTables(driver, "老人照顧科", EnumSet.allOf(OutputType.class));
 
         unit = new Select(driver.findElement(By.id("setUnits")));
         unit.selectByVisibleText("護理科");
         Thread.sleep(1000);
-        downloadTables(driver, "專業類科-護理科", EnumSet.allOf(OutputType.class));
+        downloadTables(driver, "護理科", EnumSet.allOf(OutputType.class));
 
         unit = new Select(driver.findElement(By.id("setUnits")));
         unit.selectByVisibleText("化妝品應用科");
         Thread.sleep(1000);
-        downloadTables(driver, "專業類科-化妝品應用科", EnumSet.allOf(OutputType.class));
+        downloadTables(driver, "化妝品應用科", EnumSet.allOf(OutputType.class));
         
         ((JavascriptExecutor)driver).executeScript("alert('Done!')");
 	}
@@ -149,9 +112,10 @@ public class AssessmentDownloader {
         	boolean pageLoaded = false;
         	
         	for(OutputType type: types) {
-            	String finalName = folder+"/"+linkText.replace('/', '及')+type.ext;
+            	String finalName = linkText.replace('/', '及')+type.ext;
+            	File finalOutput = new File(output_dir, type.name+"/"+folder+"/"+finalName);
     			
-            	if(new File(type.getOutputFolder(), finalName).exists())
+            	if(finalOutput.exists())
             		continue;
             	
             	if(!pageLoaded) {
@@ -172,7 +136,7 @@ public class AssessmentDownloader {
                     pageLoaded = true;
             	}
             	
-            	type.download(driver, finalName);
+            	type.download(driver, finalOutput);
                 
         	}
         	if(pageLoaded) {
@@ -183,4 +147,38 @@ public class AssessmentDownloader {
 		}
 	}
 
+    private static enum OutputType { 
+    	EXCEL("Excel", ".xls", "轉存Excel", download_dir), 
+    	PDF("PDF", ".pdf", "按此列印", Utils.BULLZIP_DIR);
+    	
+    	public final String name;
+    	public final String ext;
+		private String buttonName;
+		private File generatedFileFolder;
+    	
+    	OutputType(String name, String ext, String buttonName, File genFileFolder) {
+    		this.name = name;
+    		this.ext = ext;
+    		this.buttonName = buttonName;
+    		this.generatedFileFolder = genFileFolder;
+    		
+    		generatedFileFolder.mkdirs();
+    		
+	        for(File f: generatedFileFolder.listFiles()) {
+	        	if(f.isFile()) {
+	        		f.delete();
+	        	}
+	        }
+    	}
+    	
+    	void download(WebDriver driver, File output) {
+    		driver.findElement(By.cssSelector("input[type='button'][value='"+buttonName+"']")).click();
+    		File newFile = Utils.waitForGeneratedFile(generatedFileFolder);
+    		
+            if(!newFile.renameTo(output)) {
+            	System.out.println("Failed to rename ["+newFile.getName()+"] to "+output.getPath());
+            	newFile.renameTo(new File(output.getParentFile(), newFile.getName()));
+            }
+    	}
+    };
 }
