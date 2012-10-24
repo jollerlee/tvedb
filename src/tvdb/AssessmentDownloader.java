@@ -17,7 +17,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class AssessmentDownloader {
 
-    private static final File output_dir = new File("D:/work/µûÅ²/download");
+    private static final File output_dir = Utils.ASSESS_DIR;
     private static final File download_dir = new File(output_dir, "temp");
     
 	/**

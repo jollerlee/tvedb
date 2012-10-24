@@ -13,7 +13,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 
 
-public class DisableInputPermission {
+public class ToggleInputPermission {
 
 	/**
 	 * @param args

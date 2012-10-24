@@ -1,7 +1,6 @@
 package tvdb;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,13 +23,14 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class DataChecker {
 
-    private static final File output_dir = new File("D:/work/tvdb/download");
+    private static final File output_dir = Utils.TVDB_DIR;
     
 	/**
 	 * @param args
 	 * @throws InterruptedException 
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, IOException {
 		new File(output_dir, "檢核").mkdirs();
 		new File(output_dir, "單位").mkdirs();
 		
@@ -49,44 +49,12 @@ public class DataChecker {
 		WebDriver driver = new FirefoxDriver(profile);
         
 		Utils.openTvdb(driver, "資料檢核");
-		
-        driver.findElement(By.partialLinkText("輸入表冊一覽表")).click();
-        
-        (new WebDriverWait(driver, 30)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("table")));
-        
 
-        // Read tables filler table and construct the mapping
         SortedMap<String, List<String>> tableUnits = new TreeMap<String, List<String>>();
         Set<String> unitSet = new HashSet<String>();
         
-        List<WebElement> trs = driver.findElement(By.tagName("table")).findElements(By.tagName("tr"));
-        trs.remove(0); // remove table header
-        
-        for(WebElement tr: trs) {
-        	
-        	List<WebElement> tds = tr.findElements(By.tagName("td"));
-        	String tableName = tds.get(1).getText();
-        	String unitStr = tds.get(5).getText();
-        	
-        	List<String> units;
-        	
-        	if(!tableUnits.containsKey(tableName)) {
-        		tableUnits.put(tableName, new ArrayList<String>());
-        	}
-        	
-        	units = tableUnits.get(tableName);
-        	
-        	for(String unit: unitStr.split(",")) {
-        		unit = unit.trim();
-        		if(unit.isEmpty())
-        			continue;
-        		
-        		units.add(unit);
-        	}
-        	
-        	unitSet.addAll(units);
-        }
-        
+		Utils.obtainTableUnitMapping(driver, tableUnits, unitSet);
+		
         for(String unit: unitSet) {
     		new File(output_dir, "單位/"+unit).mkdir();
         }
