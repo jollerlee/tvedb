@@ -1,6 +1,8 @@
 package tvdb;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.List;
 
@@ -23,6 +25,24 @@ public class FinalChecker {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws InterruptedException, IOException {
+		String startTable;
+		
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		while(true) {
+			System.out.println("Start from which table? (0 for the first table; ?_? for table ?_?)");
+			String line = br.readLine().trim();
+			if(line.equals("0")) {
+				startTable = null;
+			}
+			else if(line.matches("\\d+_\\d+(_\\d+)?")) {
+				startTable = "table"+line;
+			}
+			else {
+				continue;
+			}
+			break;
+		}
+		
 		FirefoxProfile profile = new FirefoxProfile();
 		profile.setPreference("print.print_footerleft", "");
 		profile.setPreference("print.print_footerright", "");
@@ -49,12 +69,35 @@ public class FinalChecker {
 		
 		int currentTableIdx = 0;
 		
+		waitFor關閉視窗Button(driver);
+		Select tabSelect = new Select(driver.findElement(By.cssSelector("select[name='TabName']")));
+
+		if(startTable != null) {
+			for(WebElement tableName: tabSelect.getOptions()) {
+				if(tableName.getAttribute("value").equals(startTable)) {
+					break;
+				}
+				currentTableIdx++;
+			}
+			
+			if(currentTableIdx == tabSelect.getOptions().size()) {
+				System.err.println("start table not found; starting from the first one");
+				currentTableIdx = 0;
+			}
+			else {
+				remove關閉視窗Button(driver);
+				tabSelect.selectByIndex(currentTableIdx);
+				waitFor關閉視窗Button(driver);
+				tabSelect = new Select(driver.findElement(By.cssSelector("select[name='TabName']")));
+			}
+		}
+		
 		eachTvdbTable:
 		while(true) {
-			Select tabSelect = new Select(driver.findElement(By.cssSelector("select[name='TabName']")));
+//			try {
 			int tableCount = tabSelect.getOptions().size();
-
 			String tableName = tabSelect.getFirstSelectedOption().getAttribute("value");
+			boolean dataTableFound = false;
 			
 			// look for the correct HTML table
 			for(WebElement htmlTable: driver.findElements(By.tagName("table"))) {
@@ -66,6 +109,7 @@ public class FinalChecker {
 				List<WebElement> tableHeaderTds = trs.get(0).findElements(By.tagName("td"));
 				
 				if(tableHeaderTds.size() >= 5 && tableHeaderTds.get(2).getText().equals("表冊未填原因")) {
+					dataTableFound = true;
 					trs.remove(0); // remove table header
 					
 					// look for not-yet-confirmed records
@@ -82,6 +126,7 @@ public class FinalChecker {
 									confirmChkBox.click();
 									confirmChkBox.submit();
 									driver.switchTo().alert().accept();
+									tabSelect = new Select(driver.findElement(By.cssSelector("select[name='TabName']")));
 									continue eachTvdbTable; // restart the outermost loop since the form has been submitted
 								}
 								else {
@@ -97,6 +142,10 @@ public class FinalChecker {
 				}
 			}
 			
+			if(!dataTableFound) {
+				System.err.println("["+tableName+"]: Data table not found");
+			}
+			
 			currentTableIdx++;
 			
 			if(currentTableIdx >= tableCount)
@@ -107,6 +156,33 @@ public class FinalChecker {
 			remove關閉視窗Button(driver);
 			tabSelect.selectByIndex(currentTableIdx);
 			waitFor關閉視窗Button(driver);
+			tabSelect = new Select(driver.findElement(By.cssSelector("select[name='TabName']")));
+//			}
+//			catch (UnreachableBrowserException e) {
+//				if(e.getCause() instanceof BindException) {
+//					System.err.println("Binding failed; wait for 10 seconds");
+//					Thread.sleep(30000);
+//					
+//					Select tableSelect = new Select(driver.findElement(By.cssSelector("select[name='TabName']")));
+//					String currentOptionValue = tableSelect.getFirstSelectedOption().getAttribute("value");
+//					
+//					// sync select index
+//					int i=0;
+//					for(WebElement option: tableSelect.getOptions()) {
+//						if(currentOptionValue.equals(option.getAttribute("value"))) {
+//							currentTableIdx = i;
+//							break;
+//						}
+//						i++;
+//					}
+//					
+//					(new WebDriverWait(driver, 10)).until(
+//			        		ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='submit'][value='送出']")));
+//				}
+//				else {
+//					throw e;
+//				}
+//			}
 		}
 
 		// 表冊及檢核總覽
