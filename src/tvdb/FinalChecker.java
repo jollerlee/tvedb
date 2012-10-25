@@ -47,7 +47,7 @@ public class FinalChecker {
 		
 		driver.findElement(By.partialLinkText("∏Í Æ∆ ¿À Æ÷")).click();
 		
-		int currentTableIdx = 30;
+		int currentTableIdx = 0;
 		
 		eachTvdbTable:
 		while(true) {
