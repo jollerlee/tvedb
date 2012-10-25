@@ -79,11 +79,14 @@ public class BasicDataDownloader {
             	File tableFile = new File(output_dir, "基本資料表/"+type.name+"/"+tableName+type.ext);
             	boolean tableFileExists = tableFile.exists();
             	if(!tableFileExists) {
-            		try {
-            			new File(output_dir, "基本資料表/"+type.name+"/"+tableName+"-無資料.txt").createNewFile();            		
-            		}
-            		catch(IOException e) {
-						System.err.println("Error creating no-data file for ["+tableName+"]");
+        			File noData = new File(output_dir, "基本資料表/"+tableName+"-無資料.txt");
+        			if(!noData.exists()) {
+	            		try {
+            				noData.createNewFile();
+            			}
+	            		catch(IOException e) {
+							System.err.println("Error creating no-data file for ["+tableName+"]");
+	            		}
             		}
             	}
             	
