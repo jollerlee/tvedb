@@ -173,6 +173,9 @@ public class AssessmentDownloader {
     	
     	void download(WebDriver driver, File output) {
     		driver.findElement(By.cssSelector("input[type='button'][value='"+buttonName+"']")).click();
+			// With the above method, sometimes it hangs waiting for the response after clicking, while the file has already been saved.
+    		// See AmountControlDataDownloader.java for an alternative way.
+
     		File newFile = Utils.waitForGeneratedFile(generatedFileFolder);
     		
             if(!newFile.renameTo(output)) {

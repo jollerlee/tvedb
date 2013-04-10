@@ -84,8 +84,15 @@ public class AmountControlDataDownloader {
         	String linkText = link.getText();
         	
             downloadTables(driver, "總量管制表", url, linkText, EnumSet.allOf(OutputType.class), newWindows);
+//            downloadTables(driver, "總量管制表", url, linkText, EnumSet.of(OutputType.EXCEL), newWindows);
             driver.switchTo().window(mainWin);
         }
+        
+        driver.switchTo().window(newWindows[0]);
+        driver.close();
+        driver.switchTo().window(newWindows[1]);
+        driver.close();
+        driver.switchTo().window(mainWin);
         
         SortedMap<String, List<String>> tableUnits = new TreeMap<String, List<String>>();
         Set<String> unitSet = new HashSet<String>();
@@ -114,9 +121,9 @@ public class AmountControlDataDownloader {
             			if(!targetFile.exists()) {
         					FileUtils.copyFile(tableFile, targetFile);
             			}
-    					System.out.println("["+tableFile.getName()+"] => ["+unitDir.getName()+"]");
+    					System.out.println("["+tableFile.getName()+"] => ["+unit+"]");
     				} catch (IOException e) {
-    					System.err.println("["+tableFile.getName()+"] => ["+unitDir.getName()+"]: failed");
+    					System.err.println("["+tableFile.getName()+"] => ["+unit+"]: failed");
     				}
             	}
         	}
@@ -202,7 +209,9 @@ public class AmountControlDataDownloader {
     		
 			@Override
     		public void download(WebDriver driver) {
-    			driver.findElement(By.partialLinkText("轉存Excel檔")).click();
+//    			driver.findElement(By.partialLinkText("轉存Excel檔")).click();
+				// With the above method, sometimes it hangs waiting for the response after clicking, while the file has already been saved
+    			((JavascriptExecutor)driver).executeScript(driver.findElement(By.partialLinkText("轉存Excel檔")).getAttribute("href"));
     		}
     	}, download_dir),
     	

@@ -184,7 +184,9 @@ public class BasicDataDownloader {
     		
 			@Override
     		public void download(WebDriver driver) {
-    			driver.findElement(By.partialLinkText("¶×¥XExcelÀÉ")).click();
+//    			driver.findElement(By.partialLinkText("¶×¥XExcelÀÉ")).click();
+				// With the above method, sometimes it hangs waiting for the response after clicking, while the file has already been saved
+    			((JavascriptExecutor)driver).executeScript(driver.findElement(By.partialLinkText("¶×¥XExcelÀÉ")).getAttribute("href"));
     		}
     	}, download_dir),
     	
