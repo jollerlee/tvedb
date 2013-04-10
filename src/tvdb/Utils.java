@@ -35,6 +35,7 @@ public class Utils {
 
 	static final File BULLZIP_DIR = new File("D:/temp/Bullzip");
 	static final File TVDB_DIR = new File("D:/work/tvdb/download");
+	static final File TVDB_WORK_DIR = new File("D:/work/tvdb/work");
 	static final File ASSESS_DIR = new File("D:/work/評鑑/download");
 
 	public static void main(String[] args) throws IOException {
@@ -242,6 +243,40 @@ public class Utils {
 		String line;
 
 		while ((line = rd.readLine()) != null) {
+			String tableName = line.substring(0, line.indexOf(':'));
+			String unitStr = line.substring(line.indexOf(':') + 1);
+
+			List<String> units;
+
+			if (!tableUnits.containsKey(tableName)) {
+				tableUnits.put(tableName, new ArrayList<String>());
+			}
+
+			units = tableUnits.get(tableName);
+
+			for (String unit : unitStr.split(",")) {
+				unit = unit.trim();
+				if (unit.isEmpty())
+					continue;
+
+				units.add(unit);
+			}
+
+			unitSet.addAll(units);
+		}
+	}
+
+	static void obtain總量管制表單位對應表(Map<String, List<String>> tableUnits, Set<String> unitSet)
+			throws IOException {
+
+		BufferedReader rd = new BufferedReader(new FileReader(new File(TVDB_WORK_DIR, "總量管制表單位對應表.txt")));
+		String line;
+
+		while ((line = rd.readLine()) != null) {
+			line = line.trim();
+			if(line.isEmpty())
+				continue;
+			
 			String tableName = line.substring(0, line.indexOf(':'));
 			String unitStr = line.substring(line.indexOf(':') + 1);
 
