@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -15,12 +16,16 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import javax.mail.internet.InternetAddress;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
@@ -37,9 +42,11 @@ public class Utils {
 	static final File TVDB_DIR = new File("D:/work/tvdb/download");
 	static final File TVDB_WORK_DIR = new File("D:/work/tvdb/work");
 	static final File ASSESS_DIR = new File("D:/work/評鑑/download");
+	static final File COMPRESSED_DIR = new File(TVDB_DIR, "compressed");
 
 	public static void main(String[] args) throws IOException {
-		compressAll(new File(TVDB_DIR, "單位"));
+		COMPRESSED_DIR.mkdir();
+		compressAll(new File(TVDB_DIR, "單位"), COMPRESSED_DIR);
 	}
 
 	static File waitForGeneratedFile(File outputPath) {
@@ -73,31 +80,45 @@ public class Utils {
 		}
 	}
 
-	static void compressAll(File dir) throws IOException {
+	static void compressAll(File dir, File outputDir) throws IOException {
 		for (File subdir : dir.listFiles()) {
+			compress(subdir, new File(outputDir, subdir.getName()+".zip"));
 			if (subdir.isFile())
 				continue;
+		}
+	}
 
-			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
-					new FileOutputStream(new File(dir, subdir.getName()
-							+ ".zip"))), Charset.forName("big5"));
-			for (File file : subdir.listFiles()) {
-				out.putNextEntry(new ZipEntry(subdir.getName() + "/"
-						+ file.getName()));
+	static void compress(File dir, File outputFile)
+			throws FileNotFoundException, IOException {
 
-				int c;
-				byte[] buf = new byte[1024];
-				InputStream is = new BufferedInputStream(new FileInputStream(
-						file));
-				while ((c = is.read(buf)) != -1) {
-					out.write(buf, 0, c);
-				}
+		List<File> files = new LinkedList<File>();
+		
+		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
+				new FileOutputStream(outputFile)), Charset.forName("big5"));
+		
+		files.addAll(Arrays.asList(dir.listFiles()));
+		
+		while (!files.isEmpty()) {
+			File file = files.remove(0);
+			
+			if(file.isDirectory() && !file.getName().equals(".") && !file.getName().equals("..")) {
+				files.addAll(Arrays.asList(file.listFiles()));
+				continue;
+			}
+			
+			out.putNextEntry(new ZipEntry(dir.toURI().relativize(file.toURI()).getPath()));
 
-				is.close();
+			int c;
+			byte[] buf = new byte[1024];
+			InputStream is = new BufferedInputStream(new FileInputStream(file));
+			while ((c = is.read(buf)) != -1) {
+				out.write(buf, 0, c);
 			}
 
-			out.close();
+			is.close();
 		}
+
+		out.close();
 	}
 
 	static void openTvdb(WebDriver driver, String linkText) {
@@ -297,6 +318,38 @@ public class Utils {
 			}
 
 			unitSet.addAll(units);
+		}
+	}
+
+	static void obtain單位email(Map<String, List<InternetAddress>> unitEmails)
+			throws IOException {
+
+		BufferedReader rd = new BufferedReader(new FileReader(new File(TVDB_WORK_DIR, "聯絡人.txt")));
+		String line;
+
+		while ((line = rd.readLine()) != null) {
+			line = line.trim();
+			if(line.isEmpty() || line.startsWith("#"))
+				continue;
+			
+			String unitName = line.substring(0, line.indexOf(':'));
+			String emailStr = line.substring(line.indexOf(':') + 1);
+
+			List<InternetAddress> emails;
+
+			if (!unitEmails.containsKey(unitName)) {
+				unitEmails.put(unitName, new ArrayList<InternetAddress>());
+			}
+
+			emails = unitEmails.get(unitName);
+
+			for (String email : emailStr.split(",")) {
+				email = email.trim();
+				if (email.isEmpty())
+					continue;
+
+				emails.add(new InternetAddress(email+"@mail.ntin.edu.tw", unitName, "big5"));
+			}
 		}
 	}
 }
