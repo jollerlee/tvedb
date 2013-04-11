@@ -147,7 +147,10 @@ public class BasicDataDownloader {
         	boolean pageLoaded = false;
         	
         	for(OutputType type: types) {
-            	String finalName = linkText.replace('/', '¤Î')+type.ext;
+            	String finalName = linkText.replace('/', '¤Î').replace('_', '-')+type.ext;
+            	if(finalName.startsWith("table"))
+            		finalName = finalName.replaceFirst("table", "");
+
             	File finalOutput = new File(output_dir, folder+"/"+type.name+"/"+finalName);
     			
             	if(finalOutput.exists())

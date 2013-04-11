@@ -3,17 +3,14 @@ package tvdb;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +30,6 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class Utils {
@@ -231,34 +227,36 @@ public class Utils {
 		File cacheFile = new File(TVDB_DIR, "填表單位列表.txt");
 
 		if (!cacheFile.exists()) {
-			// Classify tables to organization units
-			driver.get("http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp");
-			driver.findElement(By.linkText("技專校院")).click();
-			driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
-			driver.findElement(By.linkText("技專校院")).click();
-
-			(new WebDriverWait(driver, 10)).until(ExpectedConditions
-					.elementToBeClickable(By.partialLinkText("輸入表冊一覽表")));
-			driver.findElement(By.partialLinkText("輸入表冊一覽表")).click();
-			(new WebDriverWait(driver, 30)).until(ExpectedConditions
-					.presenceOfElementLocated(By.tagName("table")));
-
-			// Read tables filler table and construct the mapping
-			List<WebElement> trs = driver.findElement(By.tagName("table"))
-					.findElements(By.tagName("tr"));
-			trs.remove(0); // remove table header
-
-			Writer wr = new BufferedWriter(new FileWriter(cacheFile));
-
-			for (WebElement tr : trs) {
-				List<WebElement> tds = tr.findElements(By.tagName("td"));
-				String tableName = tds.get(1).getText();
-				String unitStr = tds.get(5).getText();
-				wr.write(tableName + ":" + unitStr + "\n");
-			}
-
-			wr.close();
+			throw new FileNotFoundException("File not found: "+cacheFile.getAbsolutePath()+"\n" +
+					"Should open 輸入表冊一覽表.ods and run the macro to generate the missing file.");
 		}
+			// Classify tables to organization units
+//			driver.get("http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp");
+//			driver.findElement(By.linkText("技專校院")).click();
+//			driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
+//			driver.findElement(By.linkText("技專校院")).click();
+//
+//			(new WebDriverWait(driver, 10)).until(ExpectedConditions
+//					.elementToBeClickable(By.partialLinkText("輸入表冊一覽表")));
+//			driver.findElement(By.partialLinkText("輸入表冊一覽表")).click();
+//			(new WebDriverWait(driver, 30)).until(ExpectedConditions
+//					.presenceOfElementLocated(By.tagName("table")));
+//
+//			// Read tables filler table and construct the mapping
+//			List<WebElement> trs = driver.findElement(By.tagName("table"))
+//					.findElements(By.tagName("tr"));
+//			trs.remove(0); // remove table header
+//
+//			Writer wr = new BufferedWriter(new FileWriter(cacheFile));
+//
+//			for (WebElement tr : trs) {
+//				List<WebElement> tds = tr.findElements(By.tagName("td"));
+//				String tableName = tds.get(1).getText();
+//				String unitStr = tds.get(5).getText();
+//				wr.write(tableName + ":" + unitStr + "\n");
+//			}
+//			wr.close();
+//		}
 
 		BufferedReader rd = new BufferedReader(new FileReader(cacheFile));
 		String line;

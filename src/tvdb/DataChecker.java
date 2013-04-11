@@ -147,7 +147,7 @@ public class DataChecker {
 	        // Parse checker name to figure out related tables
 	        Matcher tableFinder = Pattern.compile("\\d+(_|-)\\d+((_|-)\\d+)?").matcher(checker.getName());
 	        while(tableFinder.find()) {
-	        	List<String> unit = tableUnits.get("table"+tableFinder.group().replace('-', '_'));
+	        	List<String> unit = tableUnits.get(tableFinder.group().replace('_', '-'));
 	        	if(unit == null || unit.isEmpty()) {
 	        		System.err.println("No unit-in-charge: [table"+tableFinder.group()+"]");
 	        	}
