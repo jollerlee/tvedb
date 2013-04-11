@@ -65,7 +65,8 @@ public class BasicDataDownloader {
         Utils.obtainTableUnitMapping(driver, tableUnits, unitSet);
         
         for(String unit: unitSet) {
-    		new File(output_dir, "單位/"+unit).mkdir();
+    		new File(output_dir, "單位/"+unit+"/表冊資料").mkdirs();
+    		new File(output_dir, "單位/"+unit+"/無資料表冊").mkdirs();
         }
         
         // Copy table files to the unit in charge according to the table-unit mapping
@@ -93,29 +94,31 @@ public class BasicDataDownloader {
             	for(String unit: tableUnits.get(tableName)) {
             		File unitDir = new File(output_dir, "單位/"+unit);
             		
+            		// handle no-data tables
                 	if(!tableFileExists) {
-						File noData = new File(unitDir, tableName+"-無資料.txt");
+						File noData = new File(unitDir, "無資料表冊/"+tableName+".txt");
 	            		System.out.println("["+tableName+"-無資料] => ["+unit+"]");
 	            		
 						if(!noData.exists()) {
 							try {
     							noData.createNewFile();
 	    					} catch (IOException e) {
-	    						System.err.println("Error creating no-data file for ["+tableName+"] ("+unit+")");
+	    						System.err.println("No-data: Error creating file for ["+tableName+"] ("+unit+")");
 	    					}
 						}
                 		continue;
                 	}
                 	
+                	// Copy basic data tables
             		try {
-            			File targetFile = new File(unitDir, tableFile.getName());
+            			File targetFile = new File(unitDir, "表冊資料/"+tableFile.getName());
             			
             			if(!targetFile.exists()) {
         					FileUtils.copyFile(tableFile, targetFile);
             			}
-    					System.out.println("["+tableFile.getName()+"] => ["+unitDir.getName()+"]");
+    					System.out.println("["+tableFile.getName()+"] => ["+unit+"]");
     				} catch (IOException e) {
-    					System.err.println("["+tableFile.getName()+"] => ["+unitDir.getName()+"]: failed");
+    					System.err.println("Error: ["+tableFile.getName()+"] => ["+unit+"]");
     				}
             	}
         	}

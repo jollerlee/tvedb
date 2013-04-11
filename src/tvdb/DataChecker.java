@@ -79,7 +79,7 @@ public class DataChecker {
 		Utils.obtainTableUnitMapping(driver, tableUnits, unitSet);
 		
         for(String unit: unitSet) {
-    		new File(output_dir, "單位/"+unit).mkdir();
+    		new File(output_dir, "單位/"+unit+"/檢核疑義").mkdirs();
         }
         
         copyNoDataFilesToUnits(tableUnits);
@@ -129,7 +129,7 @@ public class DataChecker {
                 
                 File output = Utils.waitForGeneratedFile(Utils.BULLZIP_DIR);
                 if(!output.renameTo(renamed)) {
-                	System.err.println("["+renamed.getName()+"]: rename failed");
+                	System.err.println("Rename failed: ["+renamed.getName()+"]");
                 	output.renameTo(new File(output_dir, "檢核/"+output.getName()));
                 	continue;
                 }
@@ -149,7 +149,7 @@ public class DataChecker {
 	        while(tableFinder.find()) {
 	        	List<String> unit = tableUnits.get("table"+tableFinder.group().replace('-', '_'));
 	        	if(unit == null || unit.isEmpty()) {
-	        		System.err.println("[table"+tableFinder.group()+"]: no unit-in-charge");
+	        		System.err.println("No unit-in-charge: [table"+tableFinder.group()+"]");
 	        	}
 	        	else {
 	            	units.addAll(unit);
@@ -157,16 +157,16 @@ public class DataChecker {
 	        }
 	        
 	        if(units.isEmpty()) {
-	        	System.err.println("["+checker.getName()+"]: no unit-in-charge");
+	        	System.err.println("No unit-in-charge: ["+checker.getName()+"]");
 	        	continue;
 	        }
 	        
 	        for(String unit: units) {
 	        	try {
-					FileUtils.copyFileToDirectory(checker, new File(output_dir, "單位/"+unit));
+					FileUtils.copyFileToDirectory(checker, new File(output_dir, "單位/"+unit+"/檢核疑義"));
 					System.out.println("["+checker.getName()+"] => ["+unit+"]");
 				} catch (IOException e) {
-					System.err.println("["+checker.getName()+"] => ["+unit+"]: failed");
+					System.err.println("Error: ["+checker.getName()+"] => ["+unit+"]");
 				}
 	        }
 		}
