@@ -44,6 +44,7 @@ public class MailSender {
 			List<InternetAddress> recipients = unitEmails.get(unitName);
 			if(recipients == null) {
 				System.out.println("No email found for unit: "+unitName);
+//				continue;
 				break;
 			}
 			File zipFile = new File(Utils.COMPRESSED_DIR, unitName+".zip");
@@ -59,6 +60,7 @@ public class MailSender {
 				msg.setRecipients(RecipientType.TO, recipients.toArray(new InternetAddress[0]));
 				msg.setSubject("技專資料庫填報資料下載-"+unitName, "big5");
 				msg.setSentDate(new Date());
+				msg.addHeader("Return-Receipt-To", "info-team@mail.ntin.edu.tw");
 				
 				// create the message part
 				MimeBodyPart messageBodyPart = new MimeBodyPart();
