@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -224,7 +225,10 @@ public class Utils {
 			Map<String, List<String>> tableUnits, Set<String> unitSet)
 			throws IOException {
 
-		File cacheFile = new File(TVDB_DIR, "填表單位列表.txt");
+		Calendar cal = Calendar.getInstance();
+		int year = cal.get(Calendar.YEAR) - 1911;
+		int month = cal.get(Calendar.MONTH) < 7 ? 3 : 10;
+		File cacheFile = new File(TVDB_WORK_DIR, year+"-"+month+"/填表單位列表.txt");
 
 		if (!cacheFile.exists()) {
 			throw new FileNotFoundException("File not found: "+cacheFile.getAbsolutePath()+"\n" +
