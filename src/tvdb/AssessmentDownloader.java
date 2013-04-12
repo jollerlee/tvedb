@@ -1,5 +1,6 @@
 package tvdb;
 import java.io.File;
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -23,8 +24,9 @@ public class AssessmentDownloader {
 	/**
 	 * @param args
 	 * @throws InterruptedException 
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, IOException {
 		FirefoxProfile profile = new FirefoxProfile();
 		profile.setPreference("print.print_footerleft", "");
 		profile.setPreference("print.print_footerright", "");

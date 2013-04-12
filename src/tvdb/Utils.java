@@ -18,6 +18,7 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
@@ -118,7 +119,7 @@ public class Utils {
 		out.close();
 	}
 
-	static void openTvdb(WebDriver driver, String linkText) {
+	static void openTvdb(WebDriver driver, String linkText) throws IOException {
 		// Remove old temp files
 		for (File f : BULLZIP_DIR.listFiles()) {
 			if (f.isFile()) {
@@ -126,6 +127,9 @@ public class Utils {
 			}
 		}
 
+		Properties loginProps = new Properties();
+		loginProps.load(Utils.class.getResourceAsStream("login.properties"));
+		
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		Dimension winSize = driver.manage().window().getSize();
 		Dimension newWinSize = new Dimension(1700, winSize.height);
@@ -194,8 +198,8 @@ public class Utils {
 
 		// input VPN auth info
 		WebElement username = driver.findElement(By.name("username"));
-		username.sendKeys("100910");
-		driver.findElement(By.name("password")).sendKeys("3453");
+		username.sendKeys(loginProps.getProperty("tvedb.vpn.login"));
+		driver.findElement(By.name("password")).sendKeys(loginProps.getProperty("tvedb.vpn.password"));
 		username.submit();
 
 		driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
@@ -216,8 +220,8 @@ public class Utils {
 
 		// login system
 		username = driver.findElement(By.name("user_id"));
-		username.sendKeys("ntin");
-		driver.findElement(By.name("user_pwd")).sendKeys("ntinlic");
+		username.sendKeys(loginProps.getProperty("tvedb.web.login"));
+		driver.findElement(By.name("user_pwd")).sendKeys(loginProps.getProperty("tvedb.web.password"));
 		username.submit();
 	}
 
