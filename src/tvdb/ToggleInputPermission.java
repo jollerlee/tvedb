@@ -91,20 +91,18 @@ public class ToggleInputPermission {
         
         // Next, remember the names of the input-permission checkboxes
         List<WebElement> chkboxes = driver.findElements(By.cssSelector("input[type='checkbox']"));
-        for(WebElement chkbox: chkboxes)
-    	if(chkbox.getAttribute("name").matches("input_yn.*")) {
-    		chkboxNames.add(chkbox.getAttribute("name"));
-    	}
+        for(WebElement chkbox: chkboxes) {
+        	if(chkbox.getAttribute("name").matches("input_yn.*")) {
+        		chkboxNames.add(chkbox.getAttribute("name"));
+        	}
+        }
         
         // Finally, click the buttons
         for(String buttonId: buttonIds) {
-        	// Just change the values of all the checkbox each time, so that we don't have to tell which button corresponds to which checkbox.  
-        	for(String chkboxName: chkboxNames) {
-        		WebElement chkbox = driver.findElement(By.name(chkboxName));
-        		if(chkbox.isSelected() != enableInput) {
-        			chkbox.click();
-        		}
-        	}
+    		WebElement chkbox = driver.findElement(By.name("input_yn_"+buttonId));
+    		if(chkbox.isSelected() != enableInput) {
+    			chkbox.click();
+    		}
         	
         	// Do click the button. Simply clicking the button doesn't work except for IE, so we have to work it around. 
         	((JavascriptExecutor)driver).executeScript("document.getElementsByName('cid')[0].value = '"+buttonId+"';");
