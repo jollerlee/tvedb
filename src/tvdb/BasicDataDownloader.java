@@ -141,15 +141,14 @@ public class BasicDataDownloader {
         List<WebElement> tables = driver.findElements(By.tagName("a"));
         for (WebElement link : tables) {
         	String linkText = link.getText();
-        	if(!linkText.matches("^report\\d+(_|-)\\d+((_|-)\\d+)?$") && !linkText.matches("^table\\d+(_|-)\\d+((_|-)\\d+)?$"))
+        	if(!linkText.matches("^report\\d+(_|-)\\d+((_|-)\\d+)?$") && !linkText.matches(".*table\\d+(_|-)\\d+((_|-)\\d+)?$"))
         		continue;
         	
         	boolean pageLoaded = false;
         	
         	for(OutputType type: types) {
             	String finalName = linkText.replace('/', '¤Î').replace('_', '-')+type.ext;
-            	if(finalName.startsWith("table"))
-            		finalName = finalName.replaceFirst("table", "");
+            	finalName = finalName.replaceFirst(".*table", "");
 
             	File finalOutput = new File(output_dir, folder+"/"+type.name+"/"+finalName);
     			
