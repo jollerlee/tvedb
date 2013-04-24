@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -82,7 +81,7 @@ public class DataChecker {
     		new File(output_dir, "³æ¦ì/"+unit+"/ÀË®ÖºÃ¸q").mkdirs();
         }
         
-        copyNoDataFilesToUnits(tableUnits);
+        copyCheckResultToUnits(tableUnits);
         
         ((JavascriptExecutor)driver).executeScript("alert('Done!')");
 	}
@@ -113,7 +112,7 @@ public class DataChecker {
             String html = driver.findElement(By.tagName("body")).getText();
             if(!patternNoData.matcher(html).find()) {
             	// Has data
-                File renamed = new File(output_dir, "ÀË®Ö/ÀË®Ö_"+checkerName+".pdf");
+                File renamed = new File(output_dir, "ÀË®Ö/"+checkerName+".pdf");
                 
                 if(renamed.exists())
                 	continue;
@@ -138,23 +137,13 @@ public class DataChecker {
         }
 	}
 
-	private static void copyNoDataFilesToUnits(Map<String, List<String>> tableUnits) {
+	private static void copyCheckResultToUnits(Map<String, List<String>> tableUnits) {
 		File[] checkers = new File(output_dir, "ÀË®Ö").listFiles();
 		
 		for(File checker: checkers) {
 	        Set<String> units = new HashSet<String>();
 	        
-	        // Parse checker name to figure out related tables
-	        Matcher tableFinder = Pattern.compile("\\d+(_|-)\\d+((_|-)\\d+)?").matcher(checker.getName());
-	        while(tableFinder.find()) {
-	        	List<String> unit = tableUnits.get(tableFinder.group().replace('_', '-'));
-	        	if(unit == null || unit.isEmpty()) {
-	        		System.err.println("No unit-in-charge: [table"+tableFinder.group()+"]");
-	        	}
-	        	else {
-	            	units.addAll(unit);
-	        	}
-	        }
+	        Utils.obtainUnitsOfChecker(checker.getName(), tableUnits, units);
 	        
 	        if(units.isEmpty()) {
 	        	System.err.println("No unit-in-charge: ["+checker.getName()+"]");
@@ -171,7 +160,7 @@ public class DataChecker {
 	        }
 		}
 	}
-	
+
 	private static void waitForÃö³¬µøµ¡Button(WebDriver driver) {
 		(new WebDriverWait(driver, 10)).until(
         		ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='button'][value='Ãö³¬µøµ¡']")));
