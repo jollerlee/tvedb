@@ -186,6 +186,7 @@ public class Utils {
 
 		driver.findElement(By.linkText("技專校院")).click();
 
+		// handle IE SSL certificate error
 		if(driver instanceof InternetExplorerDriver && !driver.findElements(By.id("overridelink")).isEmpty()) {
 			driver.navigate().to("javascript:document.getElementById('overridelink').click()");
 		}
