@@ -34,7 +34,7 @@ public class AmountControlDataDownloader {
 	 * @throws IOException 
 	 * @throws AWTException 
 	 */
-	public static void main(String[] args) throws InterruptedException, IOException, AWTException {
+	public static void main(String[] args) throws InterruptedException, IOException {
 		new File(output_dir, "³æ¦ì").mkdirs();
 		
 		FirefoxProfile profile = new FirefoxProfile();
