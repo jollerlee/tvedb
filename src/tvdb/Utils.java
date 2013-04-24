@@ -357,11 +357,17 @@ public class Utils {
 	static void obtainUnitsOfChecker(String checkerName,
 			Map<String, List<String>> tableUnits, Set<String> result) {
 		
+		if(checkerName.contains("特殊專班")) {
+			result.addAll(Arrays.asList(new String[]{"教務處註冊組","夜間部","教務處課務組","實習輔導處"}));
+			return;
+		}
+		
 		// Parse checker name to figure out related tables
-		Matcher tableFinder = Pattern.compile("\\d+((_|-)\\d+)+(系列)?").matcher(checkerName);
+		Matcher tableFinder = Pattern.compile("(表|table)\\s*(\\d+((_|-)\\d+)*(系列)?)", Pattern.CASE_INSENSITIVE).matcher(checkerName);
 		while(tableFinder.find()) {
-			String tableName = tableFinder.group().replace('_', '-');
+			String tableName = tableFinder.group(2).replace('_', '-');
 			if(tableName.endsWith("系列")) {
+				tableName = tableName.replace("系列", "");
 				for(Map.Entry<String, List<String>> mapEntry: tableUnits.entrySet()) {
 					String table = mapEntry.getKey();
 					List<String> units = mapEntry.getValue();
