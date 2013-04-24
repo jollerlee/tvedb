@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -31,6 +33,7 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -43,8 +46,8 @@ public class Utils {
 	static final File COMPRESSED_DIR = new File(TVDB_DIR, "compressed");
 
 	public static void main(String[] args) throws IOException {
-		COMPRESSED_DIR.mkdir();
-		compressAll(new File(TVDB_DIR, "單位"), COMPRESSED_DIR);
+//		COMPRESSED_DIR.mkdir();
+//		compressAll(new File(TVDB_DIR, "單位"), COMPRESSED_DIR);
 	}
 
 	static File waitForGeneratedFile(File outputPath) {
@@ -183,6 +186,10 @@ public class Utils {
 
 		driver.findElement(By.linkText("技專校院")).click();
 
+		if(driver instanceof InternetExplorerDriver && !driver.findElements(By.id("overridelink")).isEmpty()) {
+			driver.navigate().to("javascript:document.getElementById('overridelink').click()");
+		}
+		
 		// wait for VPN login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
 		(new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
@@ -229,42 +236,28 @@ public class Utils {
 			Map<String, List<String>> tableUnits, Set<String> unitSet)
 			throws IOException {
 
+		doObtainTableUnitMapping(tableUnits, unitSet, "填表單位列表.txt");
+	}
+
+	static void obtain非當期TableUnitMapping(WebDriver driver,
+			Map<String, List<String>> tableUnits, Set<String> unitSet)
+			throws IOException {
+
+		doObtainTableUnitMapping(tableUnits, unitSet, "非當期填表單位列表.txt");
+	}
+
+	private static void doObtainTableUnitMapping(
+			Map<String, List<String>> tableUnits, Set<String> unitSet,
+			String filename) throws FileNotFoundException, IOException {
 		Calendar cal = Calendar.getInstance();
 		int year = cal.get(Calendar.YEAR) - 1911;
 		int month = cal.get(Calendar.MONTH) < 7 ? 3 : 10;
-		File cacheFile = new File(TVDB_WORK_DIR, year+"-"+month+"/填表單位列表.txt");
+		File cacheFile = new File(TVDB_WORK_DIR, year+"-"+month+"/"+filename);
 
 		if (!cacheFile.exists()) {
 			throw new FileNotFoundException("File not found: "+cacheFile.getAbsolutePath()+"\n" +
 					"Should open 輸入表冊一覽表.ods and run the macro to generate the missing file.");
 		}
-			// Classify tables to organization units
-//			driver.get("http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp");
-//			driver.findElement(By.linkText("技專校院")).click();
-//			driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
-//			driver.findElement(By.linkText("技專校院")).click();
-//
-//			(new WebDriverWait(driver, 10)).until(ExpectedConditions
-//					.elementToBeClickable(By.partialLinkText("輸入表冊一覽表")));
-//			driver.findElement(By.partialLinkText("輸入表冊一覽表")).click();
-//			(new WebDriverWait(driver, 30)).until(ExpectedConditions
-//					.presenceOfElementLocated(By.tagName("table")));
-//
-//			// Read tables filler table and construct the mapping
-//			List<WebElement> trs = driver.findElement(By.tagName("table"))
-//					.findElements(By.tagName("tr"));
-//			trs.remove(0); // remove table header
-//
-//			Writer wr = new BufferedWriter(new FileWriter(cacheFile));
-//
-//			for (WebElement tr : trs) {
-//				List<WebElement> tds = tr.findElements(By.tagName("td"));
-//				String tableName = tds.get(1).getText();
-//				String unitStr = tds.get(5).getText();
-//				wr.write(tableName + ":" + unitStr + "\n");
-//			}
-//			wr.close();
-//		}
 
 		BufferedReader rd = new BufferedReader(new FileReader(cacheFile));
 		String line;
@@ -289,7 +282,8 @@ public class Utils {
 				units.add(unit);
 			}
 
-			unitSet.addAll(units);
+			if(unitSet != null)
+				unitSet.addAll(units);
 		}
 	}
 
@@ -355,6 +349,37 @@ public class Utils {
 					continue;
 
 				emails.add(new InternetAddress(email+"@mail.ntin.edu.tw", unitName, "big5"));
+			}
+		}
+	}
+
+	static void obtainUnitsOfChecker(String checkerName,
+			Map<String, List<String>> tableUnits, Set<String> result) {
+		
+		// Parse checker name to figure out related tables
+		Matcher tableFinder = Pattern.compile("\\d+((_|-)\\d+)+(系列)?").matcher(checkerName);
+		while(tableFinder.find()) {
+			String tableName = tableFinder.group().replace('_', '-');
+			if(tableName.endsWith("系列")) {
+				for(Map.Entry<String, List<String>> mapEntry: tableUnits.entrySet()) {
+					String table = mapEntry.getKey();
+					List<String> units = mapEntry.getValue();
+					
+					if(table.equals(tableName) 
+							|| table.startsWith(tableName+"-") 
+							|| table.startsWith(tableName+"_")) {
+						result.addAll(units);
+					}
+				}
+			}
+			else {
+				List<String> unit = tableUnits.get(tableName);
+				if(unit == null || unit.isEmpty()) {
+					System.err.println("No unit-in-charge: ["+tableName+"] in ["+checkerName+"]");
+				}
+				else {
+			    	result.addAll(unit);
+				}
 			}
 		}
 	}
