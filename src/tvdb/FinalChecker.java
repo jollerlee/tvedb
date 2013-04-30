@@ -97,6 +97,8 @@ public class FinalChecker {
 //			try {
 			int tableCount = tabSelect.getOptions().size();
 			String tableName = tabSelect.getFirstSelectedOption().getAttribute("value");
+			tableName = tableName.replace("table", "").replace('_', '-');
+			
 			boolean dataTableFound = false;
 			
 			// look for the correct HTML table
@@ -146,10 +148,16 @@ public class FinalChecker {
 				System.err.println("["+tableName+"]: Data table not found");
 			}
 			
-			currentTableIdx++;
-			
-			if(currentTableIdx >= tableCount)
-				break;
+			// handle the tricky case: sometimes the options duplicate
+			String lastTableName = tableName;
+			do {
+				currentTableIdx++;
+
+				if(currentTableIdx >= tableCount)
+					break eachTvdbTable;
+				
+				tableName = tabSelect.getOptions().get(currentTableIdx).getAttribute("value").replace("table", "").replace('_', '-');
+			} while(lastTableName.equals(tableName));
 			
 			// change to the next table
 			
