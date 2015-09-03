@@ -185,22 +185,14 @@ public class BasicDataDownloader {
 	}
 
     private static enum OutputType { 
-    	EXCEL("Excel", ".xls", new TypeDownloader() {
-    		
-			@Override
-    		public void download(WebDriver driver) {
-//    			driver.findElement(By.partialLinkText("¶×¥XExcelÀÉ")).click();
-				// With the above method, sometimes it hangs waiting for the response after clicking, while the file has already been saved
-    			((JavascriptExecutor)driver).executeScript(driver.findElement(By.partialLinkText("¶×¥XExcelÀÉ")).getAttribute("href"));
-    		}
+    	EXCEL("Excel", ".xls", (driver) -> {
+//			driver.findElement(By.partialLinkText("¶×¥XExcelÀÉ")).click();
+			// With the above method, sometimes it hangs waiting for the response after clicking, while the file has already been saved
+			((JavascriptExecutor)driver).executeScript(driver.findElement(By.partialLinkText("¶×¥XExcelÀÉ")).getAttribute("href"));
     	}, download_dir),
     	
-    	PDF("PDF", ".pdf", new TypeDownloader() {
-
-			@Override
-			public void download(WebDriver driver) {
-				((JavascriptExecutor)driver).executeScript("window.print();");
-			}
+    	PDF("PDF", ".pdf", (driver) -> {
+			((JavascriptExecutor)driver).executeScript("window.print();");
     	}, Utils.BULLZIP_DIR);
     	
     	interface TypeDownloader {
