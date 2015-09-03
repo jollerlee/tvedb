@@ -46,8 +46,8 @@ public class Utils {
 	static final File COMPRESSED_DIR = new File(TVDB_DIR, "compressed");
 
 	public static void main(String[] args) throws IOException {
-//		COMPRESSED_DIR.mkdir();
-//		compressAll(new File(TVDB_DIR, "單位"), COMPRESSED_DIR);
+		// COMPRESSED_DIR.mkdir();
+		// compressAll(new File(TVDB_DIR, "單位"), COMPRESSED_DIR);
 	}
 
 	static File waitForGeneratedFile(File outputPath) {
@@ -83,30 +83,29 @@ public class Utils {
 
 	static void compressAll(File dir, File outputDir) throws IOException {
 		for (File subdir : dir.listFiles()) {
-			compress(subdir, new File(outputDir, subdir.getName()+".zip"));
+			compress(subdir, new File(outputDir, subdir.getName() + ".zip"));
 			if (subdir.isFile())
 				continue;
 		}
 	}
 
-	static void compress(File dir, File outputFile)
-			throws FileNotFoundException, IOException {
+	static void compress(File dir, File outputFile) throws FileNotFoundException, IOException {
 
 		List<File> files = new LinkedList<File>();
-		
-		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
-				new FileOutputStream(outputFile)), Charset.forName("big5"));
-		
+
+		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)),
+				Charset.forName("big5"));
+
 		files.addAll(Arrays.asList(dir.listFiles()));
-		
+
 		while (!files.isEmpty()) {
 			File file = files.remove(0);
-			
-			if(file.isDirectory() && !file.getName().equals(".") && !file.getName().equals("..")) {
+
+			if (file.isDirectory() && !file.getName().equals(".") && !file.getName().equals("..")) {
 				files.addAll(Arrays.asList(file.listFiles()));
 				continue;
 			}
-			
+
 			out.putNextEntry(new ZipEntry(dir.toURI().relativize(file.toURI()).getPath()));
 
 			int c;
@@ -132,7 +131,7 @@ public class Utils {
 
 		Properties loginProps = new Properties();
 		loginProps.load(Utils.class.getResourceAsStream("login.properties"));
-		
+
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		Dimension winSize = driver.manage().window().getSize();
 		Dimension newWinSize = new Dimension(1700, winSize.height);
@@ -140,57 +139,50 @@ public class Utils {
 
 		// Don't know why, but document.write seems to hang
 		// ((JavascriptExecutor)driver).executeScript(
-		// "document.write('<p>請確認  Bullzip printer 輸出路徑已設為 "+output_dir.getPath().replace('\\',
+		// "document.write('<p>請確認 Bullzip printer 輸出路徑已設為
+		// "+output_dir.getPath().replace('\\',
 		// '/')+"/&lt;time&gt;.pdf<br>" +
 		// "確認後請按以下 link 開始下載表冊:<br>" +
-		// "<a href=\"http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp\">評鑑基本資料表</a>');"
+		// "<a
+		// href=\"http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp\">評鑑基本資料表</a>');"
 		// +
 		// "document.close();");
 
 		if (linkText == null) {
 			driver.get("http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp");
 		} else {
-			((JavascriptExecutor) driver)
-					.executeScript("var p = document.createElement('p');"
-							+ "p.innerHTML= '請確認  Bullzip printer 輸出路徑已設為 "
-							+ BULLZIP_DIR.getPath().replace('\\', '/')
-							+ "/&lt;time&gt;.pdf<br>"
-							+ "確認後請按以下 link 開始下載表冊:<br>';"
-							+ "var a = document.createElement('a');"
-							+ "a.setAttribute('href', 'http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp');"
-							+ "a.innerHTML = '"
-							+ linkText
-							+ "';"
-							+ "p.appendChild(a);"
-							+ "document.getElementsByTagName('body')[0].appendChild(p);");
+			((JavascriptExecutor) driver).executeScript("var p = document.createElement('p');"
+					+ "p.innerHTML= '請確認  Bullzip printer 輸出路徑已設為 " + BULLZIP_DIR.getPath().replace('\\', '/')
+					+ "/&lt;time&gt;.pdf<br>" + "確認後請按以下 link 開始下載表冊:<br>';" + "var a = document.createElement('a');"
+					+ "a.setAttribute('href', 'http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp');"
+					+ "a.innerHTML = '" + linkText + "';" + "p.appendChild(a);"
+					+ "document.getElementsByTagName('body')[0].appendChild(p);");
 
 			// Pop-ups cause subsequent call to WebDriver throwing exception
 			// ((JavascriptExecutor)driver).executeScript(
-			// "confirm('請確認  Bullzip printer 輸出路徑已設為 ["+output_dir.getPath().replace('\\',
+			// "confirm('請確認 Bullzip printer 輸出路徑已設為
+			// ["+output_dir.getPath().replace('\\',
 			// '/')+"]<time>.pdf');");
 			// ((JavascriptExecutor)driver).executeScript(
 			// "document.location.href='http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp';");
 
 			// Wait for the user clicking the link
-			(new WebDriverWait(driver, 100000000))
-					.until(new ExpectedCondition<Boolean>() {
+			(new WebDriverWait(driver, 100000000)).until(new ExpectedCondition<Boolean>() {
 
-						public Boolean apply(WebDriver drv) {
-							return drv
-									.getCurrentUrl()
-									.equals("http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp");
-						}
+				public Boolean apply(WebDriver drv) {
+					return drv.getCurrentUrl().equals("http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp");
+				}
 
-					});
+			});
 		}
 
 		driver.findElement(By.linkText("技專校院")).click();
 
 		// handle IE SSL certificate error
-		if(driver instanceof InternetExplorerDriver && !driver.findElements(By.id("overridelink")).isEmpty()) {
+		if (driver instanceof InternetExplorerDriver && !driver.findElements(By.id("overridelink")).isEmpty()) {
 			driver.navigate().to("javascript:document.getElementById('overridelink').click()");
 		}
-		
+
 		// wait for VPN login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
 		(new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
@@ -233,159 +225,155 @@ public class Utils {
 		username.submit();
 	}
 
-	static void obtainTableUnitMapping(WebDriver driver,
-			Map<String, List<String>> tableUnits, Set<String> unitSet)
+	static void obtainTableUnitMapping(WebDriver driver, Map<String, List<String>> tableUnits, Set<String> unitSet)
 			throws IOException {
 
 		doObtainTableUnitMapping(tableUnits, unitSet, "填表單位列表.txt");
 	}
 
-	static void obtain非當期TableUnitMapping(WebDriver driver,
-			Map<String, List<String>> tableUnits, Set<String> unitSet)
+	static void obtain非當期TableUnitMapping(WebDriver driver, Map<String, List<String>> tableUnits, Set<String> unitSet)
 			throws IOException {
 
 		doObtainTableUnitMapping(tableUnits, unitSet, "非當期填表單位列表.txt");
 	}
 
-	private static void doObtainTableUnitMapping(
-			Map<String, List<String>> tableUnits, Set<String> unitSet,
+	private static void doObtainTableUnitMapping(Map<String, List<String>> tableUnits, Set<String> unitSet,
 			String filename) throws FileNotFoundException, IOException {
 		Calendar cal = Calendar.getInstance();
 		int year = cal.get(Calendar.YEAR) - 1911;
 		int month = cal.get(Calendar.MONTH) < 7 ? 3 : 10;
-		File cacheFile = new File(TVDB_WORK_DIR, year+"-"+month+"/"+filename);
+		File cacheFile = new File(TVDB_WORK_DIR, year + "-" + month + "/" + filename);
 
 		if (!cacheFile.exists()) {
-			throw new FileNotFoundException("File not found: "+cacheFile.getAbsolutePath()+"\n" +
-					"Should open 輸入表冊一覽表.ods and run the macro to generate the missing file.");
+			throw new FileNotFoundException("File not found: " + cacheFile.getAbsolutePath() + "\n"
+					+ "Should open 輸入表冊一覽表.ods and run the macro to generate the missing file.");
 		}
 
-		BufferedReader rd = new BufferedReader(new FileReader(cacheFile));
 		String line;
 
-		while ((line = rd.readLine()) != null) {
-			String tableName = line.substring(0, line.indexOf(':'));
-			String unitStr = line.substring(line.indexOf(':') + 1);
+		try (BufferedReader rd = new BufferedReader(new FileReader(cacheFile))) {
+			while ((line = rd.readLine()) != null) {
+				String tableName = line.substring(0, line.indexOf(':'));
+				String unitStr = line.substring(line.indexOf(':') + 1);
 
-			List<String> units;
+				List<String> units;
 
-			if (!tableUnits.containsKey(tableName)) {
-				tableUnits.put(tableName, new ArrayList<String>());
+				if (!tableUnits.containsKey(tableName)) {
+					tableUnits.put(tableName, new ArrayList<String>());
+				}
+
+				units = tableUnits.get(tableName);
+
+				for (String unit : unitStr.split(",")) {
+					unit = unit.trim();
+					if (unit.isEmpty())
+						continue;
+
+					units.add(unit);
+				}
+
+				if (unitSet != null)
+					unitSet.addAll(units);
 			}
+		}
+	}
 
-			units = tableUnits.get(tableName);
+	static void obtain總量管制表單位對應表(Map<String, List<String>> tableUnits, Set<String> unitSet) throws IOException {
 
-			for (String unit : unitStr.split(",")) {
-				unit = unit.trim();
-				if (unit.isEmpty())
+		String line;
+		try (BufferedReader rd = new BufferedReader(new FileReader(new File(TVDB_WORK_DIR, "總量管制表單位對應表.txt")))) {
+			while ((line = rd.readLine()) != null) {
+				line = line.trim();
+				if (line.isEmpty())
 					continue;
 
-				units.add(unit);
-			}
+				String tableName = line.substring(0, line.indexOf(':'));
+				String unitStr = line.substring(line.indexOf(':') + 1);
 
-			if(unitSet != null)
+				List<String> units;
+
+				if (!tableUnits.containsKey(tableName)) {
+					tableUnits.put(tableName, new ArrayList<String>());
+				}
+
+				units = tableUnits.get(tableName);
+
+				for (String unit : unitStr.split(",")) {
+					unit = unit.trim();
+					if (unit.isEmpty())
+						continue;
+
+					units.add(unit);
+				}
+
 				unitSet.addAll(units);
+			}
 		}
+
 	}
 
-	static void obtain總量管制表單位對應表(Map<String, List<String>> tableUnits, Set<String> unitSet)
-			throws IOException {
+	static void obtain單位email(Map<String, List<InternetAddress>> unitEmails) throws IOException {
 
-		BufferedReader rd = new BufferedReader(new FileReader(new File(TVDB_WORK_DIR, "總量管制表單位對應表.txt")));
 		String line;
 
-		while ((line = rd.readLine()) != null) {
-			line = line.trim();
-			if(line.isEmpty())
-				continue;
-			
-			String tableName = line.substring(0, line.indexOf(':'));
-			String unitStr = line.substring(line.indexOf(':') + 1);
-
-			List<String> units;
-
-			if (!tableUnits.containsKey(tableName)) {
-				tableUnits.put(tableName, new ArrayList<String>());
-			}
-
-			units = tableUnits.get(tableName);
-
-			for (String unit : unitStr.split(",")) {
-				unit = unit.trim();
-				if (unit.isEmpty())
+		try (BufferedReader rd = new BufferedReader(new FileReader(new File(TVDB_WORK_DIR, "聯絡人.txt")))) {
+			while ((line = rd.readLine()) != null) {
+				line = line.trim();
+				if (line.isEmpty() || line.startsWith("#"))
 					continue;
 
-				units.add(unit);
-			}
+				String unitName = line.substring(0, line.indexOf(':'));
+				String emailStr = line.substring(line.indexOf(':') + 1);
 
-			unitSet.addAll(units);
-		}
-	}
+				List<InternetAddress> emails;
 
-	static void obtain單位email(Map<String, List<InternetAddress>> unitEmails)
-			throws IOException {
+				if (!unitEmails.containsKey(unitName)) {
+					unitEmails.put(unitName, new ArrayList<InternetAddress>());
+				}
 
-		BufferedReader rd = new BufferedReader(new FileReader(new File(TVDB_WORK_DIR, "聯絡人.txt")));
-		String line;
+				emails = unitEmails.get(unitName);
 
-		while ((line = rd.readLine()) != null) {
-			line = line.trim();
-			if(line.isEmpty() || line.startsWith("#"))
-				continue;
-			
-			String unitName = line.substring(0, line.indexOf(':'));
-			String emailStr = line.substring(line.indexOf(':') + 1);
+				for (String email : emailStr.split(",")) {
+					email = email.trim();
+					if (email.isEmpty())
+						continue;
 
-			List<InternetAddress> emails;
-
-			if (!unitEmails.containsKey(unitName)) {
-				unitEmails.put(unitName, new ArrayList<InternetAddress>());
-			}
-
-			emails = unitEmails.get(unitName);
-
-			for (String email : emailStr.split(",")) {
-				email = email.trim();
-				if (email.isEmpty())
-					continue;
-
-				emails.add(new InternetAddress(email+"@mail.ntin.edu.tw", unitName, "big5"));
+					emails.add(new InternetAddress(email + "@mail.ntin.edu.tw", unitName, "big5"));
+				}
 			}
 		}
+
 	}
 
-	static void obtainUnitsOfChecker(String checkerName,
-			Map<String, List<String>> tableUnits, Set<String> result) {
-		
-		if(checkerName.contains("特殊專班")) {
-			result.addAll(Arrays.asList(new String[]{"教務處註冊組","夜間部","教務處課務組","實習輔導處"}));
+	static void obtainUnitsOfChecker(String checkerName, Map<String, List<String>> tableUnits, Set<String> result) {
+
+		if (checkerName.contains("特殊專班")) {
+			result.addAll(Arrays.asList(new String[] { "教務處註冊組", "夜間部", "教務處課務組", "實習輔導處" }));
 			return;
 		}
-		
+
 		// Parse checker name to figure out related tables
-		Matcher tableFinder = Pattern.compile("(表|table)\\s*(\\d+((_|-)\\d+)*(系列)?)", Pattern.CASE_INSENSITIVE).matcher(checkerName);
-		while(tableFinder.find()) {
+		Matcher tableFinder = Pattern.compile("(表|table)\\s*(\\d+((_|-)\\d+)*(系列)?)", Pattern.CASE_INSENSITIVE)
+				.matcher(checkerName);
+		while (tableFinder.find()) {
 			String tableName = tableFinder.group(2).replace('_', '-');
-			if(tableName.endsWith("系列")) {
+			if (tableName.endsWith("系列")) {
 				tableName = tableName.replace("系列", "");
-				for(Map.Entry<String, List<String>> mapEntry: tableUnits.entrySet()) {
+				for (Map.Entry<String, List<String>> mapEntry : tableUnits.entrySet()) {
 					String table = mapEntry.getKey();
 					List<String> units = mapEntry.getValue();
-					
-					if(table.equals(tableName) 
-							|| table.startsWith(tableName+"-") 
-							|| table.startsWith(tableName+"_")) {
+
+					if (table.equals(tableName) || table.startsWith(tableName + "-")
+							|| table.startsWith(tableName + "_")) {
 						result.addAll(units);
 					}
 				}
-			}
-			else {
+			} else {
 				List<String> unit = tableUnits.get(tableName);
-				if(unit == null || unit.isEmpty()) {
-					System.err.println("No unit-in-charge: ["+tableName+"] in ["+checkerName+"]");
-				}
-				else {
-			    	result.addAll(unit);
+				if (unit == null || unit.isEmpty()) {
+					System.err.println("No unit-in-charge: [" + tableName + "] in [" + checkerName + "]");
+				} else {
+					result.addAll(unit);
 				}
 			}
 		}
