@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -25,7 +25,7 @@ public class 設定輸入表冊一覽表 {
 	 */
 	public static void main(String[] args) throws InterruptedException,
 			IOException {
-		WebDriver driver = new FirefoxDriver();
+		WebDriver driver = new FirefoxDriver(Utils.createFireFoxProfile());
 
 		Utils.openTvdb(driver, null);
 		(new WebDriverWait(driver, 10)).until(ExpectedConditions
