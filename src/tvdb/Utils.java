@@ -33,6 +33,7 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -149,12 +150,12 @@ public class Utils {
 		// "document.close();");
 
 		if (linkText == null) {
-			driver.get("http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp");
+			driver.get("http://140.125.243.18");
 		} else {
 			((JavascriptExecutor) driver).executeScript("var p = document.createElement('p');"
 					+ "p.innerHTML= '請確認  Bullzip printer 輸出路徑已設為 " + BULLZIP_DIR.getPath().replace('\\', '/')
 					+ "/&lt;time&gt;.pdf<br>" + "確認後請按以下 link 開始下載表冊:<br>';" + "var a = document.createElement('a');"
-					+ "a.setAttribute('href', 'http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp');"
+					+ "a.setAttribute('href', 'http://140.125.243.18');"
 					+ "a.innerHTML = '" + linkText + "';" + "p.appendChild(a);"
 					+ "document.getElementsByTagName('body')[0].appendChild(p);");
 
@@ -167,16 +168,16 @@ public class Utils {
 			// "document.location.href='http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp';");
 
 			// Wait for the user clicking the link
-			(new WebDriverWait(driver, 100000000)).until(new ExpectedCondition<Boolean>() {
-
-				public Boolean apply(WebDriver drv) {
-					return drv.getCurrentUrl().equals("http://www.tvedb.yuntech.edu.tw/tvedb/index/index.asp");
-				}
-
-			});
+//			(new WebDriverWait(driver, 100000000)).until(new ExpectedCondition<Boolean>() {
+//
+//				public Boolean apply(WebDriver drv) {
+//					return drv.getCurrentUrl().equals("http://140.125.243.18");
+//				}
+//
+//			});
 		}
 
-		driver.findElement(By.linkText("技專校院")).click();
+//		driver.findElement(By.linkText("技專校院")).click();
 
 		// handle IE SSL certificate error
 		if (driver instanceof InternetExplorerDriver && !driver.findElements(By.id("overridelink")).isEmpty()) {
@@ -203,7 +204,7 @@ public class Utils {
 		username.submit();
 
 		driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
-		driver.findElement(By.linkText("技專校院")).click();
+//		driver.findElement(By.linkText("技專校院")).click();
 
 		// wait for system login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
@@ -377,5 +378,28 @@ public class Utils {
 				}
 			}
 		}
+	}
+	
+	static public FirefoxProfile createFireFoxProfile() {
+		FirefoxProfile profile = new FirefoxProfile();
+		profile.setPreference("print.print_footerleft", "");
+		profile.setPreference("print.print_footerright", "");
+		profile.setPreference("print.print_headerleft", "");
+		profile.setPreference("print.print_headerright", "");
+		profile.setPreference("print_printer", "Bullzip PDF Printer");
+		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerleft", "");
+		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerright", "");
+		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerleft", "");
+		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerright", "");
+		profile.setPreference("print.always_print_silent", true);
+		
+		profile.setPreference("browser.download.manager.showWhenStarting", false);
+		profile.setPreference("browser.download.folderList", 2); // to make the following setting take effect
+		profile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel,application/vnd.ms-execl");
+		
+		profile.setPreference("security.ssl3.dhe_rsa_aes_128_sha", false);
+		profile.setPreference("security.ssl3.dhe_rsa_aes_256_sha", false);
+		profile.setPreference("webdriver_accept_untrusted_certs", true);
+		return profile;
 	}
 }

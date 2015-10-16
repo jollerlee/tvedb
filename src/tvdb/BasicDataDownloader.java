@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
@@ -31,24 +33,11 @@ public class BasicDataDownloader {
 	 */
 	public static void main(String[] args) throws InterruptedException, IOException {
 		new File(output_dir, "單位").mkdirs();
+		download_dir.mkdirs();
 		
-		FirefoxProfile profile = new FirefoxProfile();
-		profile.setPreference("print.print_footerleft", "");
-		profile.setPreference("print.print_footerright", "");
-		profile.setPreference("print.print_headerleft", "");
-		profile.setPreference("print.print_headerright", "");
-		profile.setPreference("print_printer", "Bullzip PDF Printer");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerleft", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerright", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerleft", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerright", "");
-		profile.setPreference("print.always_print_silent", true);
-		
-		profile.setPreference("browser.download.manager.showWhenStarting", false);
-		profile.setPreference("browser.download.folderList", 2); // to make the following setting take effect
+		FirefoxProfile profile = Utils.createFireFoxProfile();
 		profile.setPreference("browser.download.dir", download_dir.getPath());
-		profile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel,application/vnd.ms-execl");
-		
+
 		WebDriver driver = new FirefoxDriver(profile);
 		
 		Utils.openTvdb(driver, "基本表冊");
@@ -137,17 +126,27 @@ public class BasicDataDownloader {
 			new File(output_dir, folder+"/"+type.name).mkdirs();
 		}
 		
+    	Pattern patReport = Pattern.compile("^(report\\d+(_|-)\\d+((_|-)\\d+)?).*$");
+    	Pattern patTable = Pattern.compile(".*(table\\d+(_|-)\\d+((_|-)\\d+)?).*$");
+
         // Click each link if not downloaded yet
         List<WebElement> tables = driver.findElements(By.tagName("a"));
         for (WebElement link : tables) {
         	String linkText = link.getText();
-        	if(!linkText.matches("^report\\d+(_|-)\\d+((_|-)\\d+)?$") && !linkText.matches(".*table\\d+(_|-)\\d+((_|-)\\d+)?$"))
+        	Matcher matcher;
+        	if((matcher = patReport.matcher(linkText)).matches() ||
+        			(matcher = patTable.matcher(linkText)).matches()) {
+        		linkText = matcher.group(1);
+        	}
+        	else {
+        		System.out.println("Ignored link: "+linkText);
         		continue;
+        	}
         	
         	boolean pageLoaded = false;
         	
         	for(OutputType type: types) {
-            	String finalName = linkText.replace('/', '及').replace('_', '-')+type.ext;
+            	String finalName = linkText.replace('_', '-')+type.ext;
             	finalName = finalName.replaceFirst(".*table", "");
 
             	File finalOutput = new File(output_dir, folder+"/"+type.name+"/"+finalName);

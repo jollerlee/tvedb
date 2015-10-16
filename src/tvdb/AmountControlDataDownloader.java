@@ -37,22 +37,8 @@ public class AmountControlDataDownloader {
 	public static void main(String[] args) throws InterruptedException, IOException {
 		new File(output_dir, "³æ¦ì").mkdirs();
 		
-		FirefoxProfile profile = new FirefoxProfile();
-		profile.setPreference("print.print_footerleft", "");
-		profile.setPreference("print.print_footerright", "");
-		profile.setPreference("print.print_headerleft", "");
-		profile.setPreference("print.print_headerright", "");
-		profile.setPreference("print_printer", "Bullzip PDF Printer");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerleft", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerright", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerleft", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerright", "");
-		profile.setPreference("print.always_print_silent", true);
-		
-		profile.setPreference("browser.download.manager.showWhenStarting", false);
-		profile.setPreference("browser.download.folderList", 2); // to make the following setting take effect
+		FirefoxProfile profile = Utils.createFireFoxProfile();
 		profile.setPreference("browser.download.dir", download_dir.getPath());
-		profile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel,application/vnd.ms-execl");
 		
 		WebDriver driver = new FirefoxDriver(profile);
 		

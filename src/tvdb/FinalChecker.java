@@ -11,7 +11,6 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -43,19 +42,7 @@ public class FinalChecker {
 			break;
 		}
 		
-		FirefoxProfile profile = new FirefoxProfile();
-		profile.setPreference("print.print_footerleft", "");
-		profile.setPreference("print.print_footerright", "");
-		profile.setPreference("print.print_headerleft", "");
-		profile.setPreference("print.print_headerright", "");
-		profile.setPreference("print_printer", "Bullzip PDF Printer");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerleft", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerright", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerleft", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerright", "");
-		profile.setPreference("print.always_print_silent", true);
-		
-		WebDriver driver = new FirefoxDriver(profile);
+		WebDriver driver = new FirefoxDriver(Utils.createFireFoxProfile());
         
 		Utils.openTvdb(driver, null);
 		String mainUrl = driver.getCurrentUrl();
