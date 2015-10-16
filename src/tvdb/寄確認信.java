@@ -76,7 +76,7 @@ public class 寄確認信 {
 						"    (一)表冊資料：請填表單位核對資料正確性。\n" +
 						"    (二)無資料表冊：未填報之表冊，請確認是否確實無資料。\n" +
 						"    (三)檢核疑義：其內檔案代表系統認為相關表冊資料有可疑之處；此項資訊可供填表單位當作確認表冊資料時參考之用。\n" +
-						"    (四)總量管制表：請確認報表內的各總量正確。\n\n" +
+						"    (四)總量管制表：(十月份無此項目)請確認報表內的各總量正確。\n\n" +
 						"若填報有錯誤或遺漏的情形，請填表單位通知資訊組開放修改表冊權限，\n" +
 						"填表單位自行修正完成後再通知資訊組。\n\n" +
 						"--\n" +
@@ -98,6 +98,7 @@ public class 寄確認信 {
 
 				// Send the message
 				Transport.send(msg);
+//				System.out.println(unitName+":"+unitEmails.get(unitName));
 			} catch (MessagingException | UnsupportedEncodingException mex) {
 				System.out.println(unitName + ": send failed, exception: " + mex);
 			}
