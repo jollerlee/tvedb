@@ -28,10 +28,10 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-public class 寄第一階段截止通知 {
+public class 寄第二階段截止通知 {
 
 	public static void main(String[] args) throws IOException {
-
+		
 		Map<String, List<InternetAddress>> unitEmails = new HashMap<>();
 
 		Utils.obtain單位email(unitEmails);
@@ -44,27 +44,25 @@ public class 寄第一階段截止通知 {
 			try {
 				doSendMessage(entry.getKey(), entry.getValue());
 			} catch (Exception e1) {
-				System.err.println("Error sending message to " + entry.getKey() + ": " + e1.getMessage());
+				System.err.println("Error sending message to "+entry.getKey()+": "+e1.getMessage());
 				e1.printStackTrace();
 			}
 		});
 
-		// try {
-		// doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"),
-		// Arrays.asList("資訊組", "圖書館"));
-		// } catch (AddressException e) {
-		// e.printStackTrace();
-		// }
+//		try {
+//			doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"), Arrays.asList("資訊組", "圖書館"));
+//		} catch (AddressException e) {
+//			e.printStackTrace();
+//		}
 		return;
 	}
 
 	private static void doSendMessage(InternetAddress email, List<String> units) throws IOException {
 		Properties confProps = new Properties();
 		try (Reader pr = new InputStreamReader(
-				寄第一階段截止通知.class.getResourceAsStream("第一階段截止通知.properties"), "UTF-8")) {
+				寄第二階段截止通知.class.getResourceAsStream("第二階段截止通知.properties"), "UTF-8")) {
 			confProps.load(pr);
 		}
-		
 		final String due = confProps.getProperty("due");
 		final String subject = confProps.getProperty("subject");
 		final String content = confProps.getProperty("content");

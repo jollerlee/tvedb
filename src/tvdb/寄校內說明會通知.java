@@ -5,6 +5,8 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,9 +28,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class 寄校內說明會通知 {
 
-	private static final String 舉辦地點 = "圖資五樓電腦教室二";
-	private static final String 舉辦日期 = "9/10(四)2:30pm";
-
 	public static void main(String[] args) throws IOException {
 		Map<String, List<InternetAddress>> unitEmails = new HashMap<>();
 
@@ -46,6 +45,22 @@ public class 寄校內說明會通知 {
 	}
 
 	private static void doSendMessage(InternetAddress email, List<String> units) {
+		Properties confProps = new Properties();
+		try (Reader pr = new InputStreamReader(
+				寄校內說明會通知.class.getResourceAsStream("寄校內說明會通知.properties"), "UTF-8")) {
+			confProps.load(pr);
+		} 
+		catch (IOException e) {
+			System.err.println("Error reading properties file: "+e.getMessage());
+			e.printStackTrace();
+			return;
+		}
+		
+		final String subject = confProps.getProperty("subject");
+		final String content = confProps.getProperty("content");
+		final String place = confProps.getProperty("place");
+		final String time = confProps.getProperty("time");
+
 		Properties props = new Properties();
 		props.put("mail.smtp.host", "mail.ntin.edu.tw");
 		Session session = Session.getInstance(props, null);
@@ -54,7 +69,7 @@ public class 寄校內說明會通知 {
 			MimeMessage msg = new MimeMessage(session);
 			msg.setFrom(new InternetAddress("info-team@mail.ntin.edu.tw", "臺南護專-資訊組", "big5"));
 			msg.setRecipients(RecipientType.TO, new InternetAddress[] { email });
-			msg.setSubject("[會議通知]技專資料庫-校內說明會", "big5");
+			msg.setSubject(subject, "big5");
 			msg.setSentDate(new Date());
 			msg.addHeader("Return-Receipt-To", "info-team@mail.ntin.edu.tw");
 
@@ -62,12 +77,7 @@ public class 寄校內說明會通知 {
 			MimeBodyPart messageBodyPart = new MimeBodyPart();
 
 			// fill message
-			messageBodyPart.setText("您好，\n\n" + "技專資料庫填報作業已經開始，\n" + 
-					"資訊組將於 "+舉辦日期+" 於"+舉辦地點+"舉辦校內說明會，" + 
-					"請您務必撥冗出席。\n" + 
-					"依據資訊組的記錄，您負責的單位是" + units + "，\n" + 
-					"如有錯誤，請與資訊組聯絡更正，謝謝!\n\n" + "--\n" + "臺南護專/資訊組 李仁豪 (分機 232)\n",
-					"big5");
+			messageBodyPart.setText(String.format(content, time, place, units), "big5");
 
 			Multipart multipart = new MimeMultipart();
 			multipart.addBodyPart(messageBodyPart);
