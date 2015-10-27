@@ -150,12 +150,12 @@ public class Utils {
 		// "document.close();");
 
 		if (linkText == null) {
-			driver.get("http://140.125.243.18");
+			driver.get("http://140.125.243.5/index/school/login_school.htm");
 		} else {
 			((JavascriptExecutor) driver).executeScript("var p = document.createElement('p');"
 					+ "p.innerHTML= '請確認  Bullzip printer 輸出路徑已設為 " + BULLZIP_DIR.getPath().replace('\\', '/')
 					+ "/&lt;time&gt;.pdf<br>" + "確認後請按以下 link 開始下載表冊:<br>';" + "var a = document.createElement('a');"
-					+ "a.setAttribute('href', 'http://140.125.243.18');"
+					+ "a.setAttribute('href', 'http://140.125.243.5/index/school/login_school.htm');"
 					+ "a.innerHTML = '" + linkText + "';" + "p.appendChild(a);"
 					+ "document.getElementsByTagName('body')[0].appendChild(p);");
 
@@ -183,7 +183,10 @@ public class Utils {
 		if (driver instanceof InternetExplorerDriver && !driver.findElements(By.id("overridelink")).isEmpty()) {
 			driver.navigate().to("javascript:document.getElementById('overridelink').click()");
 		}
-
+		
+		WebElement username;
+		
+/*** VPN disable on 2015-10
 		// wait for VPN login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
 		(new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
@@ -198,13 +201,14 @@ public class Utils {
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
 		// input VPN auth info
-		WebElement username = driver.findElement(By.name("username"));
+		username = driver.findElement(By.name("username"));
 		username.sendKeys(loginProps.getProperty("tvedb.vpn.login"));
 		driver.findElement(By.name("password")).sendKeys(loginProps.getProperty("tvedb.vpn.password"));
 		username.submit();
 
 		driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
 //		driver.findElement(By.linkText("技專校院")).click();
+VPN disabled ****/
 
 		// wait for system login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
