@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,11 +31,14 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class 寄第一階段截止通知 {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, AddressException {
 
 		Map<String, List<InternetAddress>> unitEmails = new HashMap<>();
 
 		Utils.obtain單位email(unitEmails);
+//		List<InternetAddress> testAddr = new ArrayList<InternetAddress>();
+//		testAddr.add(new InternetAddress("jollerlee@mail.ntin.edu.tw"));
+//		unitEmails.put("資訊組測試", testAddr);
 
 		Map<InternetAddress, List<String>> emails = unitEmails.entrySet().stream()
 				.flatMap(e -> e.getValue().stream().map(email -> Pair.of(email, e.getKey())))
@@ -49,12 +53,6 @@ public class 寄第一階段截止通知 {
 			}
 		});
 
-		// try {
-		// doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"),
-		// Arrays.asList("資訊組", "圖書館"));
-		// } catch (AddressException e) {
-		// e.printStackTrace();
-		// }
 		return;
 	}
 
