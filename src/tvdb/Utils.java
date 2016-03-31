@@ -150,7 +150,7 @@ public class Utils {
 		// "document.close();");
 
 		if (linkText == null) {
-			driver.get("http://140.125.243.5/index/school/login_school.htm");
+			driver.get("http://140.125.243.18/");
 		} else {
 			((JavascriptExecutor) driver).executeScript("var p = document.createElement('p');"
 					+ "p.innerHTML= '請確認  Bullzip printer 輸出路徑已設為 " + BULLZIP_DIR.getPath().replace('\\', '/')
@@ -186,7 +186,6 @@ public class Utils {
 		
 		WebElement username;
 		
-/*** VPN disable on 2015-10
 		// wait for VPN login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
 		(new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
@@ -207,8 +206,7 @@ public class Utils {
 		username.submit();
 
 		driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
-//		driver.findElement(By.linkText("技專校院")).click();
-VPN disabled ****/
+		driver.findElement(By.linkText("login")).click();
 
 		// wait for system login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
@@ -404,6 +402,8 @@ VPN disabled ****/
 		profile.setPreference("security.ssl3.dhe_rsa_aes_128_sha", false);
 		profile.setPreference("security.ssl3.dhe_rsa_aes_256_sha", false);
 		profile.setPreference("webdriver_accept_untrusted_certs", true);
+		profile.setAcceptUntrustedCertificates(true);
+		//profile.setAssumeUntrustedCertificateIssuer(false);
 		return profile;
 	}
 }
