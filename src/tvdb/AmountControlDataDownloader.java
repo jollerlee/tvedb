@@ -109,7 +109,7 @@ public class AmountControlDataDownloader {
             			}
     					System.out.println("["+tableFile.getName()+"] => ["+unit+"]");
     				} catch (IOException e) {
-    					System.err.println("["+tableFile.getName()+"] => ["+unit+"]: failed");
+    					System.err.println("["+tableFile.getName()+"] => ["+unit+"]: failed: "+e.getMessage());
     				}
             	}
         	}
@@ -133,23 +133,28 @@ public class AmountControlDataDownloader {
 
         (new WebDriverWait(driver, 60)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("table")));
         
-        Matcher m = pat.matcher(currentLinkText);
-    	if(!m.find()) {
-    		System.err.println("link ignored: "+currentLinkText);
-    		return;
-    	}
+        for(WebElement h2 : driver.findElements(By.cssSelector("h2"))) {
+            String header = h2.getText();
+            Matcher m = pat.matcher(header);
+            if(m.find()) {
+                for(OutputType type: types) {
+                    String finalName = m.group() + type.ext;
+                    File finalOutput = new File(output_dir, folder+"/"+type.name+"/"+finalName);
+                    if(!finalOutput.exists()) {
+                        type.download(driver, finalOutput);
+                    }
+                }
+                break;
+            }
+            else {
+                System.err.println("header ignored: "+header);
+            }
+        }
         
-    	for(OutputType type: types) {
-        	String finalName = m.group().replace('/', '及')+type.ext;
-        	File finalOutput = new File(output_dir, folder+"/"+type.name+"/"+finalName);
-        	if(!finalOutput.exists()) {
-            	type.download(driver, finalOutput);
-        	}
-    	}
 		
         // Click each link if not downloaded yet
         for (WebElement link : driver.findElements(By.partialLinkText("總量管制報表-"))) {
-        	m = pat.matcher(link.getText());
+            Matcher m = pat.matcher(link.getText());
         	if(!m.find()) {
         		System.err.println("link ignored: "+link.getText());
         		continue;
