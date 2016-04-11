@@ -60,14 +60,17 @@ public class DataChecker {
         
         // Start to copy checker result files to unit folders
         Map<String, List<String>> tableUnits = new HashMap<String, List<String>>();
+        Map<String, List<String>> tableUnitsNonCurrent = new HashMap<String, List<String>>();
         Set<String> unitSet = new HashSet<String>();
         
-		Utils.obtainTableUnitMapping(driver, tableUnits, unitSet);
+		Utils.obtainTableUnitMapping(tableUnits, unitSet);
+		Utils.obtain非當期TableUnitMapping(tableUnitsNonCurrent, unitSet);
 		
         for(String unit: unitSet) {
     		new File(output_dir, "單位/"+unit+"/檢核疑義").mkdirs();
         }
         
+        tableUnits.putAll(tableUnitsNonCurrent);
         copyCheckResultToUnits(tableUnits);
         
         ((JavascriptExecutor)driver).executeScript("alert('Done!')");

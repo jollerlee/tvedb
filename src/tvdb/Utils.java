@@ -155,7 +155,7 @@ public class Utils {
 			((JavascriptExecutor) driver).executeScript("var p = document.createElement('p');"
 					+ "p.innerHTML= '請確認  Bullzip printer 輸出路徑已設為 " + BULLZIP_DIR.getPath().replace('\\', '/')
 					+ "/&lt;time&gt;.pdf<br>" + "確認後請按以下 link 開始下載表冊:<br>';" + "var a = document.createElement('a');"
-					+ "a.setAttribute('href', 'http://140.125.243.5/index/school/login_school.htm');"
+					+ "a.setAttribute('href', 'http://140.125.243.18/');"
 					+ "a.innerHTML = '" + linkText + "';" + "p.appendChild(a);"
 					+ "document.getElementsByTagName('body')[0].appendChild(p);");
 
@@ -228,13 +228,13 @@ public class Utils {
 		username.submit();
 	}
 
-	static void obtainTableUnitMapping(WebDriver driver, Map<String, List<String>> tableUnits, Set<String> unitSet)
+	static void obtainTableUnitMapping(Map<String, List<String>> tableUnits, Set<String> unitSet)
 			throws IOException {
 
 		doObtainTableUnitMapping(tableUnits, unitSet, "填表單位列表.txt");
 	}
 
-	static void obtain非當期TableUnitMapping(WebDriver driver, Map<String, List<String>> tableUnits, Set<String> unitSet)
+	static void obtain非當期TableUnitMapping(Map<String, List<String>> tableUnits, Set<String> unitSet)
 			throws IOException {
 
 		doObtainTableUnitMapping(tableUnits, unitSet, "非當期填表單位列表.txt");

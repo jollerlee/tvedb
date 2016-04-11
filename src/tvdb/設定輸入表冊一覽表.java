@@ -39,7 +39,7 @@ public class 設定輸入表冊一覽表 {
 		SortedMap<String, List<String>> tableUnits = new TreeMap<String, List<String>>();
 		Set<String> unitSet = new HashSet<String>();
 
-		Utils.obtainTableUnitMapping(driver, tableUnits, unitSet);
+		Utils.obtainTableUnitMapping(tableUnits, unitSet);
 
 		// Read tables filler table and construct the mapping
 		List<WebElement> trs = driver.findElement(By.tagName("table"))
@@ -52,12 +52,16 @@ public class 設定輸入表冊一覽表 {
 			String tableName = tds.get(1).getText();
 			tableName = tableName.replaceFirst("^table", "").replace("_", "-");
 			WebElement unitTextField = tds.get(5).findElement(By.tagName("textarea"));
+			if(unitTextField.getAttribute("readonly") != null) {
+			    System.err.println("Readonly text-field: " + unitTextField.getText() + "; skipped");
+			    continue;
+			}
 			unitTextField.clear();
 			unitTextField.sendKeys(StringUtils.join(tableUnits.get(tableName), ","));
 		}
 
 		// 表冊檢核明細
-		Utils.obtain非當期TableUnitMapping(driver, tableUnits, unitSet);
+		Utils.obtain非當期TableUnitMapping(tableUnits, unitSet);
 		trs = driver.findElements(By.tagName("table")).get(1).findElements(By.tagName("tr"));
 		trs.remove(0); // remove table primary header
 		trs.remove(0); // remove table secondary header
@@ -74,7 +78,8 @@ public class 設定輸入表冊一覽表 {
 			unitTextField.clear();
 			unitTextField.sendKeys(StringUtils.join(units, ","));
 		}
-		((JavascriptExecutor) driver).executeScript("alert('請在確認無誤後按下 [儲存], 並留意本頁是否有[會計表冊]須處理!')");
+//		((JavascriptExecutor) driver).executeScript("alert('請在確認無誤後按下 [儲存], 並留意本頁是否有[會計表冊]須處理!')");
+		driver.findElement(By.cssSelector("input[type=submit][value=確定儲存]")).click();
 	}
 
 }
