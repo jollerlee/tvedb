@@ -73,7 +73,8 @@ public class DataChecker {
         tableUnits.putAll(tableUnitsNonCurrent);
         copyCheckResultToUnits(tableUnits);
         
-        ((JavascriptExecutor)driver).executeScript("alert('Done!')");
+        ((JavascriptExecutor)driver).executeScript("alert('Done! 有部份交叉檢核表不會在名稱上標明所有相關表冊，請逐檔檢查。')");
+        System.err.println("有部份交叉檢核表不會在名稱上標明所有相關表冊，請逐檔檢查。");
 	}
 
 	private static void downloadChecker(WebDriver driver) {
