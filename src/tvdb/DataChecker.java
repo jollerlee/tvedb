@@ -32,7 +32,7 @@ public class DataChecker {
 		new File(output_dir, "檢核").mkdirs();
 		new File(output_dir, "單位").mkdirs();
 		
-		WebDriver driver = new FirefoxDriver(Utils.createFireFoxProfile());
+		WebDriver driver = Utils.createFireFoxDriver();
         
 		Utils.openTvdb(driver, "資料檢核");
         (new WebDriverWait(driver, 10)).until(ExpectedConditions.elementToBeClickable(By.partialLinkText("資 料 檢 核")));

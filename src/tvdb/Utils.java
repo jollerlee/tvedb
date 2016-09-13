@@ -29,20 +29,22 @@ import java.util.zip.ZipOutputStream;
 import javax.mail.internet.InternetAddress;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class Utils {
 
 	static final File BULLZIP_DIR = new File("D:/temp/Bullzip");
-	static final File TVDB_DIR = new File("D:/work/tvdb/download");
-	static final File TVDB_WORK_DIR = new File("D:/work/tvdb/work");
+	static final File TVDB_DIR = new File("D:/work/00_tvdb/download");
+	static final File TVDB_WORK_DIR = new File("D:/work/00_tvdb/work");
 	static final File ASSESS_DIR = new File("D:/work/評鑑/download");
 	static final File COMPRESSED_DIR = new File(TVDB_DIR, "compressed");
 
@@ -134,9 +136,9 @@ public class Utils {
 		loginProps.load(Utils.class.getResourceAsStream("login.properties"));
 
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-		Dimension winSize = driver.manage().window().getSize();
-		Dimension newWinSize = new Dimension(1700, winSize.height);
-		driver.manage().window().setSize(newWinSize);
+//		Dimension winSize = driver.manage().window().getSize();
+//		Dimension newWinSize = new Dimension(1700, winSize.height);
+//		driver.manage().window().setSize(newWinSize);
 
 		// Don't know why, but document.write seems to hang
 		// ((JavascriptExecutor)driver).executeScript(
@@ -206,7 +208,7 @@ public class Utils {
 		username.submit();
 
 		driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
-		driver.findElement(By.linkText("login")).click();
+//		driver.findElement(By.linkText("login")).click();
 
 		// wait for system login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
@@ -382,28 +384,50 @@ public class Utils {
 		}
 	}
 	
+    static public FirefoxDriver createFireFoxDriver() {
+        return createFireFoxDriver(createFireFoxProfile());
+    }
+    
 	static public FirefoxProfile createFireFoxProfile() {
-		FirefoxProfile profile = new FirefoxProfile();
-		profile.setPreference("print.print_footerleft", "");
-		profile.setPreference("print.print_footerright", "");
-		profile.setPreference("print.print_headerleft", "");
-		profile.setPreference("print.print_headerright", "");
-		profile.setPreference("print_printer", "Bullzip PDF Printer");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerleft", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_footerright", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerleft", "");
-		profile.setPreference("printer_Bullzip_PDF_Printer.print_headerright", "");
-		profile.setPreference("print.always_print_silent", true);
+	    ProfilesIni allProfile = new ProfilesIni();
+	    FirefoxProfile profile = allProfile.getProfile("tvedb"); 
+        profile.setPreference("browser.startup.homepage_override.mstone", "ignore");
+        profile.setPreference("startup.homepage_welcome_url.additional",  "about:blank");
+        profile.setPreference("print.print_footerleft", "");
+        profile.setPreference("print.print_footerright", "");
+        profile.setPreference("print.print_headerleft", "");
+        profile.setPreference("print.print_headerright", "");
+        profile.setPreference("print_printer", "Bullzip PDF Printer");
+        profile.setPreference("printer_Bullzip_PDF_Printer.print_footerleft", "");
+        profile.setPreference("printer_Bullzip_PDF_Printer.print_footerright", "");
+        profile.setPreference("printer_Bullzip_PDF_Printer.print_headerleft", "");
+        profile.setPreference("printer_Bullzip_PDF_Printer.print_headerright", "");
+        profile.setPreference("print.always_print_silent", true);
+        
+        profile.setPreference("browser.download.manager.showWhenStarting", false);
+        profile.setPreference("browser.download.folderList", 2); // to make the following setting take effect
+        profile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel,application/vnd.ms-execl");
+        
+        profile.setPreference("security.ssl3.dhe_rsa_aes_128_sha", false);
+        profile.setPreference("security.ssl3.dhe_rsa_aes_256_sha", false);
+//      profile.setPreference("webdriver_accept_untrusted_certs", true);
+        profile.setAcceptUntrustedCertificates(true);
+        profile.setAssumeUntrustedCertificateIssuer(false);
+        return profile;
+	}
+	
+    static public FirefoxDriver createFireFoxDriver(FirefoxProfile profile) {
+        System.setProperty("webdriver.gecko.driver", "d:/home/tvedb/geckodriver.exe");
 		
-		profile.setPreference("browser.download.manager.showWhenStarting", false);
-		profile.setPreference("browser.download.folderList", 2); // to make the following setting take effect
-		profile.setPreference("browser.helperApps.neverAsk.saveToDisk", "application/vnd.ms-excel,application/vnd.ms-execl");
+//        ProfilesIni allProfile = new ProfilesIni();
+//        FirefoxProfile profile = allProfile.getProfile("tvedb"); 
+//        profile.setPreference("browser.startup.homepage_override.mstone", "ignore");
+//        profile.setPreference("startup.homepage_welcome_url.additional",  "about:blank");
+        DesiredCapabilities caps = DesiredCapabilities.firefox();
+        caps.setCapability("marionette", true);        
+        caps.setCapability(FirefoxDriver.PROFILE, profile);
 		
-		profile.setPreference("security.ssl3.dhe_rsa_aes_128_sha", false);
-		profile.setPreference("security.ssl3.dhe_rsa_aes_256_sha", false);
-		profile.setPreference("webdriver_accept_untrusted_certs", true);
-		profile.setAcceptUntrustedCertificates(true);
-		//profile.setAssumeUntrustedCertificateIssuer(false);
-		return profile;
+		FirefoxDriver driver = new FirefoxDriver(caps);
+		return driver;
 	}
 }

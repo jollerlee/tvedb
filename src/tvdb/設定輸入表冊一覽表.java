@@ -25,7 +25,7 @@ public class 設定輸入表冊一覽表 {
 	 */
 	public static void main(String[] args) throws InterruptedException,
 			IOException {
-		WebDriver driver = new FirefoxDriver(Utils.createFireFoxProfile());
+		WebDriver driver = Utils.createFireFoxDriver();
 
 		Utils.openTvdb(driver, null);
 		(new WebDriverWait(driver, 10)).until(ExpectedConditions

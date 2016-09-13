@@ -42,7 +42,7 @@ public class FinalChecker {
 			break;
 		}
 		
-		WebDriver driver = new FirefoxDriver(Utils.createFireFoxProfile());
+		WebDriver driver = Utils.createFireFoxDriver();
         
 		Utils.openTvdb(driver, null);
 		String mainUrl = driver.getCurrentUrl();

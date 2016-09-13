@@ -28,11 +28,11 @@ public class AssessmentDownloader {
 	 */
 	public static void main(String[] args) throws InterruptedException, IOException {
 		
-		FirefoxProfile profile = Utils.createFireFoxProfile();
-		profile.setPreference("browser.download.dir", download_dir.getPath());
-		
-		WebDriver driver = new FirefoxDriver(profile);
-		
+        FirefoxProfile profile = Utils.createFireFoxProfile();
+        profile.setPreference("browser.download.dir", download_dir.getPath());
+        
+        WebDriver driver = Utils.createFireFoxDriver(profile);
+        
         Utils.openTvdb(driver, "評鑑基本資料表");
         driver.findElement(By.partialLinkText("列 印 系 統")).click();
         driver.findElement(By.partialLinkText("評鑑基本資料表")).click();

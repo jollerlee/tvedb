@@ -40,7 +40,7 @@ public class AmountControlDataDownloader {
 		FirefoxProfile profile = Utils.createFireFoxProfile();
 		profile.setPreference("browser.download.dir", download_dir.getPath());
 		
-		WebDriver driver = new FirefoxDriver(profile);
+		WebDriver driver = Utils.createFireFoxDriver(profile);
 		
 		String mainWin = driver.getWindowHandle();
         
