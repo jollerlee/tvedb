@@ -72,7 +72,7 @@ public class ±H½T»{«H {
 		final String content = confProps.getProperty("content");
 
 		Properties props = new Properties();
-		props.put("mail.smtp.host", "mail.ntin.edu.tw");
+		props.put("mail.smtp.host", "zimbra.ntin.edu.tw");
 //		props.put("mail.from", "ntin-info-team <info-team@mail.ntin.edu.tw>");
 //		System.setProperty("mail.mime.encodefilename", "true");
 		Session session = Session.getInstance(props, null);
