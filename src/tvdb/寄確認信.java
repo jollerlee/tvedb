@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -34,6 +36,14 @@ public class 寄確認信 {
 		Utils.obtain單位email(unitEmails);
 		Utils.COMPRESSED_DIR.mkdir();
 		
+//        unitEmails.clear();
+//        try {
+//            unitEmails.put("化妝品應用科", Arrays.asList(new InternetAddress[] {new InternetAddress("jollerlee@mail.ntin.edu.tw")}));
+//        } catch (AddressException e) {
+//            e.printStackTrace();
+//            System.exit(1);
+//        }
+        
 		File allUnitFolder = new File(Utils.TVDB_DIR, "單位");
 		
 		for(File unitFolder: allUnitFolder.listFiles()) {
@@ -41,8 +51,8 @@ public class 寄確認信 {
 			List<InternetAddress> recipients = unitEmails.get(unitName);
 			if(recipients == null) {
 				System.out.println("No email found for unit: "+unitName);
-//				continue;
-				break;
+				continue;
+//				break;
 			}
 			File zipFile = new File(Utils.COMPRESSED_DIR, unitName+".zip");
 			if(!zipFile.exists()) {
