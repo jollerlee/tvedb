@@ -208,7 +208,7 @@ public class Utils {
 		username.submit();
 
 		driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
-//		driver.findElement(By.linkText("login")).click();
+		driver.findElement(By.linkText("login")).click();
 
 		// wait for system login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
@@ -254,10 +254,20 @@ public class Utils {
 					+ "Should open 輸入表冊一覽表.ods and run the macro to generate the missing file.");
 		}
 
-		String line;
+		obtainTableUnitMappingFromFile(tableUnits, unitSet, cacheFile);
+	}
 
-		try (BufferedReader rd = new BufferedReader(new FileReader(cacheFile))) {
+    private static void obtainTableUnitMappingFromFile(Map<String, List<String>> tableUnits, Set<String> unitSet,
+            File inputFile) throws IOException, FileNotFoundException {
+        
+        String line;
+
+		try (BufferedReader rd = new BufferedReader(new FileReader(inputFile))) {
 			while ((line = rd.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#"))
+                    continue;
+                
 				String tableName = line.substring(0, line.indexOf(':'));
 				String unitStr = line.substring(line.indexOf(':') + 1);
 
@@ -281,41 +291,17 @@ public class Utils {
 					unitSet.addAll(units);
 			}
 		}
-	}
+    }
 
 	static void obtain總量管制表單位對應表(Map<String, List<String>> tableUnits, Set<String> unitSet) throws IOException {
-
-		String line;
-		try (BufferedReader rd = new BufferedReader(new FileReader(new File(TVDB_WORK_DIR, "總量管制表單位對應表.txt")))) {
-			while ((line = rd.readLine()) != null) {
-				line = line.trim();
-				if (line.isEmpty())
-					continue;
-
-				String tableName = line.substring(0, line.indexOf(':'));
-				String unitStr = line.substring(line.indexOf(':') + 1);
-
-				List<String> units;
-
-				if (!tableUnits.containsKey(tableName)) {
-					tableUnits.put(tableName, new ArrayList<String>());
-				}
-
-				units = tableUnits.get(tableName);
-
-				for (String unit : unitStr.split(",")) {
-					unit = unit.trim();
-					if (unit.isEmpty())
-						continue;
-
-					units.add(unit);
-				}
-
-				unitSet.addAll(units);
-			}
-		}
-
+	    File amountControlMappingFile = new File(TVDB_WORK_DIR, "總量管制表單位對應表.txt");
+	    obtainTableUnitMappingFromFile(tableUnits, unitSet, amountControlMappingFile);
 	}
+
+    static void obtain報表單位對應表(Map<String, List<String>> tableUnits, Set<String> unitSet) throws IOException {
+        File reportUnitMappingFile = new File(TVDB_WORK_DIR, "報表單位對應表.txt");
+        obtainTableUnitMappingFromFile(tableUnits, unitSet, reportUnitMappingFile);
+    }
 
 	static void obtain單位email(Map<String, List<InternetAddress>> unitEmails) throws IOException {
 
@@ -389,8 +375,9 @@ public class Utils {
     }
     
 	static public FirefoxProfile createFireFoxProfile() {
-	    ProfilesIni allProfile = new ProfilesIni();
-	    FirefoxProfile profile = allProfile.getProfile("tvedb"); 
+//	    ProfilesIni allProfile = new ProfilesIni();
+//	    FirefoxProfile profile = allProfile.getProfile("tvedb");
+	    FirefoxProfile profile = new FirefoxProfile();
         profile.setPreference("browser.startup.homepage_override.mstone", "ignore");
         profile.setPreference("startup.homepage_welcome_url.additional",  "about:blank");
         profile.setPreference("print.print_footerleft", "");
@@ -424,7 +411,7 @@ public class Utils {
 //        profile.setPreference("browser.startup.homepage_override.mstone", "ignore");
 //        profile.setPreference("startup.homepage_welcome_url.additional",  "about:blank");
         DesiredCapabilities caps = DesiredCapabilities.firefox();
-        caps.setCapability("marionette", true);        
+//        caps.setCapability("marionette", true);        
         caps.setCapability(FirefoxDriver.PROFILE, profile);
 		
 		FirefoxDriver driver = new FirefoxDriver(caps);
