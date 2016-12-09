@@ -3,6 +3,7 @@ package tvdb;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,8 +33,6 @@ import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
-
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 
 public class 寄信通知 {
 
@@ -87,13 +86,13 @@ public class 寄信通知 {
             doSendMessage(entry.getKey(), entry.getValue(), emailTemplate);
         });
 
-        // try {
-        // doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"),
-        // Arrays.asList("資訊組", "圖書館"),
-        // emailTemplate);
-        // } catch (Exception e1) {
-        // e1.printStackTrace();
-        // }
+//         try {
+//         doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"),
+//         Arrays.asList("資訊組", "圖書館"),
+//         emailTemplate);
+//         } catch (Exception e1) {
+//         e1.printStackTrace();
+//         }
         return;
     }
 
@@ -107,13 +106,14 @@ public class 寄信通知 {
             e.printStackTrace();
             return;
         }
-
-        Map<String, Object> formatValues = new HashMap<>();
+        
+        Map<String, Object> formatValues = 
+                confProps.entrySet().stream().collect(toMap(e->(String)(e.getKey()), Map.Entry::getValue));
 
         final String subject = confProps.getProperty("subject");
         final String content = confProps.getProperty("content");
-        formatValues.put("place", confProps.getProperty("place"));
-        formatValues.put("time", confProps.getProperty("time"));
+//        formatValues.put("place", confProps.getProperty("place"));
+//        formatValues.put("time", confProps.getProperty("time"));
         formatValues.put("units", units);
 
         Properties props = new Properties();
