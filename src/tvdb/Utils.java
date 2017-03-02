@@ -208,7 +208,7 @@ public class Utils {
 		username.submit();
 
 		driver.findElement(By.linkText("技專校院校務基本資料庫")).click();
-		driver.findElement(By.linkText("login")).click();
+//		driver.findElement(By.linkText("login")).click();
 
 		// wait for system login page
 		driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
