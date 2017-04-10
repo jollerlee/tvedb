@@ -42,15 +42,15 @@ public class AmountControlDataDownloader {
 		
 		WebDriver driver = Utils.createFireFoxDriver(profile);
 		
-		String mainWin = driver.getWindowHandle();
-        
 		Utils.openTvdb(driver, "總量管制報表");
     	
-    	driver.findElement(By.tagName("body")).sendKeys(Keys.CONTROL+"n");
-    	driver.findElement(By.tagName("body")).sendKeys(Keys.CONTROL+"n");
-
     	driver.findElement(By.partialLinkText("列 印 系 統")).click();
         driver.findElement(By.partialLinkText("總量管制")).click();
+        
+        String mainWin = driver.getWindowHandle();
+        // open 2 windows for links to preserve the content of the main page
+        driver.findElement(By.tagName("body")).sendKeys(Keys.CONTROL+"n");
+        driver.findElement(By.tagName("body")).sendKeys(Keys.CONTROL+"n");
         
         String[] newWindows = new String[2]; 
         int nWin = 0;
