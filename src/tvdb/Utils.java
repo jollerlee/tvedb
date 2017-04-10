@@ -49,8 +49,7 @@ public class Utils {
 	static final File COMPRESSED_DIR = new File(TVDB_DIR, "compressed");
 
 	public static void main(String[] args) throws IOException {
-		// COMPRESSED_DIR.mkdir();
-		// compressAll(new File(TVDB_DIR, "³æ¦ì"), COMPRESSED_DIR);
+	    openTvdb(createFireFoxDriver(), null);
 	}
 
 	static File waitForGeneratedFile(File outputPath) {
@@ -389,6 +388,7 @@ public class Utils {
 	    FirefoxProfile profile = new FirefoxProfile();
         profile.setPreference("browser.startup.homepage_override.mstone", "ignore");
         profile.setPreference("startup.homepage_welcome_url.additional",  "about:blank");
+        profile.setPreference("intl.charset.fallback.override", "Big5");
         profile.setPreference("print.print_footerleft", "");
         profile.setPreference("print.print_footerright", "");
         profile.setPreference("print.print_headerleft", "");
