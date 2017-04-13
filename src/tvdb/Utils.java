@@ -212,6 +212,8 @@ public class Utils {
 		
         for (String hWnd : driver.getWindowHandles()) {
             if (!hWnd.equals(mainWin)) {
+                driver.switchTo().window(mainWin);
+                driver.close();
                 driver.switchTo().window(hWnd);
                 break;
             }

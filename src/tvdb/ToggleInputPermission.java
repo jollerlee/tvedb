@@ -48,13 +48,19 @@ public class ToggleInputPermission {
 		Utils.openTvdb(driver, null);
 		
         driver.findElement(By.partialLinkText("權 限 管 理")).click();
+        String mainWin = driver.getWindowHandle();
         driver.findElement(By.partialLinkText("校內帳號一覽表")).click();
         
-        String mainWin = driver.getWindowHandle();
         String newWin = null;
         
         for(String hWnd : driver.getWindowHandles()) {
         	if(!hWnd.equals(mainWin)) {
+        	    driver.switchTo().window(hWnd);
+        	    if(driver.getCurrentUrl().contains("Manage_Index.asp")) {
+        	        // handle the problem that two windows emerge when the link get clicked
+        	        driver.close();
+        	        continue;
+        	    }
         		newWin = hWnd;
         		break;
         	}
