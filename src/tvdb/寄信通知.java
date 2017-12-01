@@ -127,7 +127,7 @@ public class ±H«H³qª¾ {
             msg.setRecipients(RecipientType.TO, new InternetAddress[] { email });
             msg.setSubject(sub.replace(subject), "utf-8");
             msg.setSentDate(new Date());
-            msg.addHeader("Return-Receipt-To", "info-team@mail.ntin.edu.tw");
+            //msg.addHeader("Return-Receipt-To", "info-team@mail.ntin.edu.tw");
 
             // create the message part
             MimeBodyPart messageBodyPart = new MimeBodyPart();
