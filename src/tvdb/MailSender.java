@@ -34,17 +34,18 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 
-public class 寄信通知 {
+public class MailSender {
 
     public static void main(String[] args) throws IOException {
-        Reflections reflections = new Reflections(寄信通知.class.getPackage().getName(), new ResourcesScanner());
+        Reflections reflections = new Reflections(MailSender.class.getPackage().getName(), new ResourcesScanner());
 
         /*
          * Find all resources coming in email-xxx.properties form. When
          * searching, the package part is excluding for matching. But the result
          * resource list comes with names including the package part.
          */
-        String[] allPropertiesFiles = reflections.getResources(Pattern.compile("email-.*\\.properties")).toArray(new String[0]);
+        String[] allPropertiesFiles = reflections.getResources(Pattern.compile("email-.*\\.properties"))
+                .toArray(new String[0]);
 
         Pattern pat = Pattern.compile(".*/email-(.*)\\.properties");
 
@@ -72,33 +73,66 @@ public class 寄信通知 {
             }
         }
 
+        final String emailTemplate = allPropertiesFiles[choice];
+        
+        boolean testingSend;
+
+        while (true) {
+            System.out.println("Send test message? (y/n)");
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            String line = br.readLine();
+            if (line.startsWith("y")) {
+                testingSend = true;
+                break;
+            }
+            else if(line.startsWith("n")) {
+                testingSend = false;
+                break;
+            }
+            else {
+                System.err.println("Illegal choice.");
+            }
+        }
+        
+        if(testingSend) {
+            try {
+                doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"), 
+                        Arrays.asList("資訊組", "圖書館"),
+                        emailTemplate);
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+            
+            System.out.println("Do send messages? (y, or otherwise for quit)");
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            String line = br.readLine();
+            if (!line.startsWith("y")) {
+                System.exit(0);
+            }
+        }
+        else {
+            System.out.println("Begin sending messages..");
+        }
+
         Map<String, List<InternetAddress>> unitEmails = new HashMap<>();
 
         Utils.obtain單位email(unitEmails);
-        
-        final String emailTemplate = allPropertiesFiles[choice];
 
         Map<InternetAddress, List<String>> emails = unitEmails.entrySet().stream()
                 .flatMap(e -> e.getValue().stream().map(email -> Pair.of(email, e.getKey())))
                 .collect(groupingBy(Pair::getLeft, mapping(Pair::getRight, toList())));
-        
+
         emails.entrySet().stream().forEach((entry) -> {
             doSendMessage(entry.getKey(), entry.getValue(), emailTemplate);
         });
 
-//         try {
-//         doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"),
-//         Arrays.asList("資訊組", "圖書館"),
-//         emailTemplate);
-//         } catch (Exception e1) {
-//         e1.printStackTrace();
-//         }
         return;
     }
 
     private static void doSendMessage(InternetAddress email, List<String> units, String templateName) {
         Properties confProps = new Properties();
-        try (Reader pr = new InputStreamReader(寄信通知.class.getClassLoader().getResourceAsStream(templateName),
+        try (Reader pr = new InputStreamReader(MailSender.class.getClassLoader().getResourceAsStream(templateName),
                 "UTF-8")) {
             confProps.load(pr);
         } catch (IOException e) {
@@ -106,14 +140,14 @@ public class 寄信通知 {
             e.printStackTrace();
             return;
         }
-        
-        Map<String, Object> formatValues = 
-                confProps.entrySet().stream().collect(toMap(e->(String)(e.getKey()), Map.Entry::getValue));
+
+        Map<String, Object> formatValues = confProps.entrySet().stream()
+                .collect(toMap(e -> (String) (e.getKey()), Map.Entry::getValue));
 
         final String subject = confProps.getProperty("subject");
         final String content = confProps.getProperty("content");
-//        formatValues.put("place", confProps.getProperty("place"));
-//        formatValues.put("time", confProps.getProperty("time"));
+        // formatValues.put("place", confProps.getProperty("place"));
+        // formatValues.put("time", confProps.getProperty("time"));
         formatValues.put("units", units);
 
         Properties props = new Properties();
@@ -127,7 +161,7 @@ public class 寄信通知 {
             msg.setRecipients(RecipientType.TO, new InternetAddress[] { email });
             msg.setSubject(sub.replace(subject), "utf-8");
             msg.setSentDate(new Date());
-            //msg.addHeader("Return-Receipt-To", "info-team@mail.ntin.edu.tw");
+            // msg.addHeader("Return-Receipt-To", "info-team@mail.ntin.edu.tw");
 
             // create the message part
             MimeBodyPart messageBodyPart = new MimeBodyPart();

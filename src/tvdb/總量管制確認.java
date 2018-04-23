@@ -32,9 +32,10 @@ public class 總量管制確認 {
 	 */
 	public static void main(String[] args) throws InterruptedException, IOException {
 //		WebDriver driver = new FirefoxDriver();
-		DesiredCapabilities capabilities = new DesiredCapabilities();
-		capabilities.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
-		WebDriver driver = new InternetExplorerDriver(capabilities);
+//		DesiredCapabilities capabilities = new DesiredCapabilities();
+//		capabilities.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+//		WebDriver driver = new InternetExplorerDriver(capabilities);
+        WebDriver driver = Utils.createFireFoxDriver();
         
 		Utils.openTvdb(driver, null);
     	
