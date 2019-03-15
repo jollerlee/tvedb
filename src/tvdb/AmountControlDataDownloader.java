@@ -69,6 +69,9 @@ public class AmountControlDataDownloader {
         	String url = link.getAttribute("href");
         	String linkText = link.getText();
         	
+        	if(url.endsWith(".zip")) continue;
+        	if(url.endsWith("totalpoint.asp")) continue;
+        	
             downloadTables(driver, "總量管制表", url, linkText, EnumSet.allOf(OutputType.class), newWindows);
 //            downloadTables(driver, "總量管制表", url, linkText, EnumSet.of(OutputType.EXCEL), newWindows);
             driver.switchTo().window(mainWin);
@@ -125,7 +128,8 @@ public class AmountControlDataDownloader {
 			new File(output_dir, folder+"/"+type.name).mkdirs();
 		}
 		
-    	Pattern pat = Pattern.compile("表\\d+-\\d+[A-Z]?");
+    	Pattern patLink = Pattern.compile("\\d+-\\d+[A-Z]?");
+    	//Pattern patHead = Pattern.compile("總量管制報表(一|二|三|四|五|六)");
     	
         // First, save the current page
         driver.switchTo().window(newWindows[0]);
@@ -133,28 +137,40 @@ public class AmountControlDataDownloader {
 
         (new WebDriverWait(driver, 60)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("table")));
         
-        for(WebElement h2 : driver.findElements(By.cssSelector("h2"))) {
-            String header = h2.getText();
-            Matcher m = pat.matcher(header);
-            if(m.find()) {
-                for(OutputType type: types) {
-                    String finalName = m.group() + type.ext;
-                    File finalOutput = new File(output_dir, folder+"/"+type.name+"/"+finalName);
-                    if(!finalOutput.exists()) {
-                        type.download(driver, finalOutput);
-                    }
-                }
-                break;
-            }
-            else {
-                System.err.println("header ignored: "+header);
-            }
-        }
+		// Links with text that appear as ?-?A contain the table directly, ie., not a folder
+		Matcher mlnk = patLink.matcher(currentLinkText);
+		if(mlnk.find()) {
+			for(OutputType type: types) {
+				String finalName = mlnk.group() + type.ext;
+				File finalOutput = new File(output_dir, folder+"/"+type.name+"/"+finalName);
+				if(!finalOutput.exists()) {
+					type.download(driver, finalOutput);
+				}
+			}
+			return;
+		}
+//        for(WebElement h2 : driver.findElements(By.cssSelector("h2"))) {
+//            String header = h2.getText();
+//            Matcher m = patHead.matcher(header);
+//            if(m.find()) {
+//                for(OutputType type: types) {
+//                    String finalName = m.group() + type.ext;
+//                    File finalOutput = new File(output_dir, folder+"/"+type.name+"/"+finalName);
+//                    if(!finalOutput.exists()) {
+//                        type.download(driver, finalOutput);
+//                    }
+//                }
+//                break;
+//            }
+//            else {
+//                System.err.println("header ignored: "+header);
+//            }
+//        }
         
 		
         // Click each link if not downloaded yet
         for (WebElement link : driver.findElements(By.partialLinkText("總量管制報表-"))) {
-            Matcher m = pat.matcher(link.getText());
+            Matcher m = patLink.matcher(link.getText());
         	if(!m.find()) {
         		System.err.println("link ignored: "+link.getText());
         		continue;
