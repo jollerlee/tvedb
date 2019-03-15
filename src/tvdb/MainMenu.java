@@ -36,7 +36,7 @@ public class MainMenu {
                 try {
                     int choice = Integer.parseInt(line);
                     if(choice < min || choice > max) {
-                        System.err.println("Illegal choice. ");
+                        System.err.println("Illegal choice "+choice+"; valid range: "+min+"~"+max);
                         continue;
                     }
                     else {
