@@ -89,12 +89,12 @@ public class 寄確認信 {
 
 		MimeMessage msg = new MimeMessage(session);
 //				msg.setFrom();
-		msg.setFrom(new InternetAddress("info-team@mail.ntin.edu.tw",
-				"臺南護專-資訊組", "big5"));
+		msg.setFrom(new InternetAddress("no-reply-info-team@mail.ntin.edu.tw",
+				"資訊組(請勿回覆)", "big5"));
 		msg.setRecipients(RecipientType.TO, recipients.toArray(new InternetAddress[0]));
 		msg.setSubject(String.format(subject, unitName), "big5");
 		msg.setSentDate(new Date());
-		msg.addHeader("Return-Receipt-To", "info-team@mail.ntin.edu.tw");
+		//msg.addHeader("Return-Receipt-To", "info-team@mail.ntin.edu.tw");
 		
 		// create the message part
 		MimeBodyPart messageBodyPart = new MimeBodyPart();
