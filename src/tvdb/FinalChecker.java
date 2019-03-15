@@ -83,8 +83,8 @@ public class FinalChecker {
 		while(true) {
 //			try {
 			int tableCount = tabSelect.getOptions().size();
-			String tableName = tabSelect.getFirstSelectedOption().getAttribute("value");
-			tableName = tableName.replace("table", "").replace('_', '-');
+			String tableName = tabSelect.getFirstSelectedOption().getText();
+			tableName = tableName.toLowerCase().replace("table", "").replace('_', '-');
 			
 			boolean dataTableFound = false;
 			
