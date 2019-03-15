@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -57,6 +59,16 @@ public class DataChecker {
         
         downloadChecker(driver);
         
+        // Statistic checkers
+        
+        remove關閉視窗Button(driver);
+        
+        driver.findElements(By.cssSelector("input[type='radio'][name='choose']")).get(3).click();
+        
+        waitFor關閉視窗Button(driver);
+        
+        downloadChecker(driver);
+        
         // Start to copy checker result files to unit folders
         Map<String, List<String>> tableUnits = new HashMap<String, List<String>>();
         Map<String, List<String>> tableUnitsNonCurrent = new HashMap<String, List<String>>();
@@ -85,7 +97,8 @@ public class DataChecker {
         waitFor關閉視窗Button(driver);
         remove關閉視窗Button(driver);
         
-        Pattern patternNoData = Pattern.compile("該表冊無(交叉)?檢核記錄");
+        Pattern patternNoData1 = Pattern.compile("該表冊無(交叉)?檢核記錄");
+        Pattern patternNoData2 = Pattern.compile("無檢核資料");
         
         for(int i=0; i<checkerCount; i++) {
             // remove a button and check its re-appearing as a sign of page loaded
@@ -94,13 +107,26 @@ public class DataChecker {
             checkers = new Select(driver.findElement(By.name("TabName")));
 
             WebElement checker = checkers.getOptions().get(i);
-        	String checkerName = checker.getText().trim().replace('/', '及');
+            /* used to using option name to figure out relevent tables; now use 相關表冊 info instead */
+        	String optionName = checker.getText().trim();
         	checker.click();
         	
             waitFor關閉視窗Button(driver);
             
+            String checkerName = optionName;
+            
+            driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
+            List<WebElement> related = driver.findElements(By.xpath("//td[text()='相關表冊']/following-sibling::td"));
+            driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+            if(!related.isEmpty()) {
+                checkerName = checkerName+"("+related.get(0).getText().trim()+")";
+            }
+            
+            checkerName = checkerName.replace('/', '及');
+            
             String html = driver.findElement(By.tagName("body")).getText();
-            if(!patternNoData.matcher(html).find()) {
+            if(!patternNoData1.matcher(html).find() && !patternNoData2.matcher(html).find()) {
             	// Has data
                 File renamed = new File(output_dir, "檢核/"+checkerName+".pdf");
                 
@@ -130,10 +156,22 @@ public class DataChecker {
 	private static void copyCheckResultToUnits(Map<String, List<String>> tableUnits) {
 		File[] checkers = new File(output_dir, "檢核").listFiles();
 		
+		Pattern patRelated = Pattern.compile(".*\\(([^)]*)\\)$");
 		for(File checker: checkers) {
 	        Set<String> units = new HashSet<String>();
+	        String relatedTables;
+	        Matcher matcher = patRelated.matcher(checker.getName());
+	        if(matcher.matches()) {
+	            relatedTables = matcher.group(1);
+	        }
+	        else {
+	            relatedTables = checker.getName();
+	            if(relatedTables.startsWith("報表")) {
+	                relatedTables = relatedTables.substring(2);
+	            }
+	        }
 	        
-	        Utils.obtainUnitsOfChecker(checker.getName(), tableUnits, units);
+	        Utils.obtainUnitsOfChecker(relatedTables, tableUnits, units);
 	        
 	        if(units.isEmpty()) {
 	        	System.err.println("No unit-in-charge: ["+checker.getName()+"]");
