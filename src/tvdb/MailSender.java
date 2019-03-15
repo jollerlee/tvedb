@@ -157,7 +157,7 @@ public class MailSender {
         try {
             StrSubstitutor sub = new StrSubstitutor(formatValues, "%(", ")");
             MimeMessage msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress("info-team@mail.ntin.edu.tw", "臺南護專-資訊組", "utf-8"));
+            msg.setFrom(new InternetAddress("no-reply-info-team@mail.ntin.edu.tw", "資訊組(請勿回覆)", "utf-8"));
             msg.setRecipients(RecipientType.TO, new InternetAddress[] { email });
             msg.setSubject(sub.replace(subject), "utf-8");
             msg.setSentDate(new Date());
