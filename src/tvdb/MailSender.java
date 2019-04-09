@@ -96,19 +96,27 @@ public class MailSender {
         }
         
         if(testingSend) {
-            try {
-                doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"), 
-                        Arrays.asList("資訊組", "圖書館"),
-                        emailTemplate);
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-            
-            System.out.println("Do send messages? (y, or otherwise for quit)");
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            String line = br.readLine();
-            if (!line.startsWith("y")) {
-                System.exit(0);
+            while(true) {
+                try {
+                    doSendMessage(new InternetAddress("jollerlee@mail.ntin.edu.tw"), 
+                            Arrays.asList("資訊組", "圖書館"),
+                            emailTemplate);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+                
+                System.out.println("Do send messages? (y, r (reload-and-test), or otherwise for quit)");
+                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+                String line = br.readLine();
+                if (line.startsWith("y")) {
+                    break;
+                }
+                else if (line.startsWith("r")) {
+                    continue;
+                }
+                else {
+                    System.exit(0);
+                }
             }
         }
         else {
