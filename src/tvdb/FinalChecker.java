@@ -1,8 +1,11 @@
 package tvdb;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Calendar;
 import java.util.List;
 
@@ -10,7 +13,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -25,6 +27,11 @@ public class FinalChecker {
 	 */
 	public static void main(String[] args) throws InterruptedException, IOException {
 		String startTable;
+
+		if(!Files.isDirectory(Utils.getNoDataReasonDir())) {
+		    System.err.println("The folder `"+Utils.getNoDataReasonDir()+"' doesn't exist!");
+		    System.exit(1);
+		}
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		while(true) {
@@ -109,18 +116,25 @@ public class FinalChecker {
 							// a record found to be not-yet-confirmed 
 							if(tds.get(4).getText().equals(""+year+":"+month)) {
 								// 當期
-								if(new File(Utils.TVDB_DIR, "基本資料表/"+tableName+"-無資料.txt").exists()) {
+							    Path reasonFile = Utils.getNoDataReasonDir().resolve(tableName+".txt");
+								if(Files.exists(reasonFile)) {
 									// 確認過無資料者
-									System.out.println("當期:無資料: ["+tableName+"]: => 確認");
-									confirmChkBox.click();
-									confirmChkBox.submit();
-									driver.switchTo().alert().accept();
-									tabSelect = new Select(driver.findElement(By.cssSelector("select[name='TabName']")));
-									continue eachTvdbTable; // restart the outermost loop since the form has been submitted
+									String reason = new String(Files.readAllBytes(reasonFile), Charset.forName("big5"));
+                                    System.out.println("當期:無資料: ["+tableName+"]: => "+reason);
+                                    
+									WebElement reasonInput = tds.get(4).findElement(By.cssSelector("input"));
+									reasonInput.clear();
+									reasonInput.sendKeys(reason);
 								}
 								else {
-									System.err.println("當期:無資料: ["+tableName+"]: => 尚未確認");
+									System.err.println("當期:無資料: ["+tableName+"]: => default reason");
 								}
+								
+                                confirmChkBox.click();
+                                confirmChkBox.submit();
+                                driver.switchTo().alert().accept();
+                                tabSelect = new Select(driver.findElement(By.cssSelector("select[name='TabName']")));
+                                continue eachTvdbTable; // restart the outermost loop since the form has been submitted
 							}
 							else {
 								System.err.println("歷史:無資料: ["+tableName+"]["+tds.get(4).getText()+"]");
