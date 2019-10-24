@@ -3,6 +3,10 @@ package tvdb;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -14,6 +18,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static java.util.stream.Collectors.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -53,7 +58,7 @@ public class BasicDataDownloader {
         (new WebDriverWait(driver, 30)).until(ExpectedConditions.presenceOfElementLocated(By.tagName("table")));
         downloadTables(driver, "基本資料表", EnumSet.allOf(OutputType.class));
         
-        SortedMap<String, List<String>> tableUnits = new TreeMap<String, List<String>>();
+        SortedMap<String, List<String>> tableUnits = new TreeMap<>();
         Set<String> unitSet = new HashSet<String>();
         Utils.obtainTableUnitMapping(tableUnits, unitSet);
         
@@ -71,44 +76,22 @@ public class BasicDataDownloader {
         		System.err.println("["+tableName+"]: no unit in charge");
         		continue;
         	}
+			
+			boolean hasData = false;
         	
         	for(OutputType type: EnumSet.allOf(OutputType.class)) {
         	    File typeFolder = new File(output_dir, "基本資料表/"+type.name);
             	File[] tableFiles = typeFolder.listFiles(
             	        (FileFilter)new WildcardFileFilter(tableName+"(*)"+type.ext));
             	
-            	if(tableFiles.length == 0) {
-            	    // Maintain a global list of no-data files
-        			File noData = new File(output_dir, "基本資料表/"+tableName+"-無資料.txt");
-        			if(!noData.exists()) {
-	            		try {
-            				noData.createNewFile();
-            			}
-	            		catch(IOException e) {
-							System.err.println("Error creating no-data file for ["+tableName+"]");
-	            		}
-            		}
-            	}
+				if(tableFiles.length != 0) {
+					hasData = true;
+				}
             	
             	// Maintain a unit-specific list of no-data files per unit
             	for(String unit: tableUnits.get(tableName)) {
             		File unitDir = new File(output_dir, "單位/"+unit);
             		
-            		// handle no-data tables
-                	if(tableFiles.length == 0) {
-						File noData = new File(unitDir, "無資料表冊/"+tableName+".txt");
-	            		System.out.println("["+tableName+"-無資料] => ["+unit+"]");
-	            		
-						if(!noData.exists()) {
-							try {
-    							noData.createNewFile();
-	    					} catch (IOException e) {
-	    						System.err.println("No-data: Error creating file for ["+tableName+"] ("+unit+")");
-	    					}
-						}
-                		continue;
-                	}
-                	
                 	// Copy basic data tables
                 	if(tableFiles.length == 1) {
                 	    // don't keep the number suffix if there is only one file for current table
@@ -137,6 +120,32 @@ public class BasicDataDownloader {
                 	}
             	}
         	}
+			
+			// Create no-data files
+			if(!hasData) {
+				// Maintain a global list of no-data files
+				Path noData = Paths.get(output_dir.getPath(), "基本資料表", tableName+"-無資料.txt");
+				try {
+					Files.createFile(noData);
+					Files.write(noData, 
+						tableUnits.get(tableName).stream().collect(joining("\n")).getBytes(StandardCharsets.UTF_8));
+				}
+				catch(IOException e) {
+					System.err.println("Error creating no-data file for ["+tableName+"]");
+				}
+				
+				// Create no-data files for all relevent units
+            	for(String unit: tableUnits.get(tableName)) {
+					noData = Paths.get(output_dir.getPath(), "單位", unit, "無資料表冊", tableName+".txt");
+					System.out.println("["+tableName+"-無資料] => ["+unit+"]");
+					
+					try {
+						Files.write(noData, ("表 "+tableName+" 沒有填報資料。\n如果確實無須填報，請寄信告知資訊組。").getBytes(StandardCharsets.UTF_8));
+					} catch (IOException e) {
+						System.err.println("No-data: Error creating file for ["+tableName+"] ("+unit+")");
+					}
+				}
+			}
         }
         
         // Copy Report to unit folders
