@@ -12,6 +12,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -34,7 +36,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -47,6 +48,7 @@ public class Utils {
 	static final File TVDB_WORK_DIR = new File("D:/work/00_tvdb/work");
 	static final File ASSESS_DIR = new File("D:/work/評鑑/download");
 	static final File COMPRESSED_DIR = new File(TVDB_DIR, "compressed");
+    private static final String TVDB_NODATA_REASON_DIR = "nodata-reason";
 
 	public static void main(String[] args) throws IOException {
 	    openTvdb(createFireFoxDriver(), null);
@@ -251,6 +253,13 @@ public class Utils {
 
 		doObtainTableUnitMapping(tableUnits, unitSet, "非當期填表單位列表.txt");
 	}
+	
+    static Path getNoDataReasonDir() {
+        Calendar cal = Calendar.getInstance();
+        int year = cal.get(Calendar.YEAR) - 1911;
+        int month = cal.get(Calendar.MONTH) < 7 ? 3 : 10;
+        return Paths.get(TVDB_WORK_DIR.getPath(), year + "-" + month, TVDB_NODATA_REASON_DIR);
+    }
 
 	private static void doObtainTableUnitMapping(Map<String, List<String>> tableUnits, Set<String> unitSet,
 			String filename) throws FileNotFoundException, IOException {
