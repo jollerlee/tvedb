@@ -119,10 +119,10 @@ public class FinalChecker {
 							    Path reasonFile = Utils.getNoDataReasonDir().resolve(tableName+".txt");
 								if(Files.exists(reasonFile)) {
 									// 確認過無資料者
-									String reason = new String(Files.readAllBytes(reasonFile), Charset.forName("big5"));
+									String reason = String.join(" ", Files.readAllLines(reasonFile));
                                     System.out.println("當期:無資料: ["+tableName+"]: => "+reason);
                                     
-									WebElement reasonInput = tds.get(4).findElement(By.cssSelector("input"));
+									WebElement reasonInput = tds.get(2).findElement(By.cssSelector("input"));
 									reasonInput.clear();
 									reasonInput.sendKeys(reason);
 								}
