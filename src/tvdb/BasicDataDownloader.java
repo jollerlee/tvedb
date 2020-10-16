@@ -5,12 +5,14 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,13 +65,22 @@ public class BasicDataDownloader {
         Utils.obtainTableUnitMapping(tableUnits, unitSet);
         
         Map<String, List<String>> reportUnits = new HashMap<>();
-        Utils.obtain報表單位對應表(reportUnits, null);
+        Utils.obtain報表單位對應表(reportUnits, unitSet);
         
         for(String unit: unitSet) {
     		new File(output_dir, "單位/"+unit+"/表冊資料").mkdirs();
     		new File(output_dir, "單位/"+unit+"/無資料表冊").mkdirs();
         }
         
+		// Prepare a set to figure out whether there are files not owned by any unit
+		Set<File> orphanFiles = new TreeSet<>();
+		for(OutputType type: EnumSet.allOf(OutputType.class)) {
+        	    File typeFolder = new File(output_dir, "基本資料表/"+type.name);
+            	File[] tableFiles = typeFolder.listFiles(
+            	        (FileFilter)new WildcardFileFilter("*"+type.ext));
+				orphanFiles.addAll(Arrays.asList(tableFiles));
+		}
+		
         // Copy table files to the unit in charge according to the table-unit mapping
         for(String tableName: tableUnits.keySet()) {
         	if(tableUnits.get(tableName).isEmpty()) {
@@ -88,6 +99,8 @@ public class BasicDataDownloader {
 					hasData = true;
 				}
             	
+				orphanFiles.removeAll(Arrays.asList(tableFiles));
+				
             	// Maintain a unit-specific list of no-data files per unit
             	for(String unit: tableUnits.get(tableName)) {
             		File unitDir = new File(output_dir, "單位/"+unit);
@@ -126,9 +139,9 @@ public class BasicDataDownloader {
 				// Maintain a global list of no-data files
 				Path noData = Paths.get(output_dir.getPath(), "基本資料表", tableName+"-無資料.txt");
 				try {
-					Files.createFile(noData);
 					Files.write(noData, 
-						tableUnits.get(tableName).stream().collect(joining("\n")).getBytes(StandardCharsets.UTF_8));
+						tableUnits.get(tableName).stream().collect(joining("\n")).getBytes(StandardCharsets.UTF_8), 
+						StandardOpenOption.CREATE);
 				}
 				catch(IOException e) {
 					System.err.println("Error creating no-data file for ["+tableName+"]");
@@ -153,16 +166,20 @@ public class BasicDataDownloader {
             File srcDir = new File(output_dir, "基本資料表/"+type.name+"/");
             
             reportUnits.entrySet().stream().forEach(entry -> { 
+				String reportName = entry.getKey();
+				File[] srcFiles = srcDir.listFiles(
+						(FileFilter)new WildcardFileFilter("report"+reportName+"(*)"+type.ext));
+				
+				orphanFiles.removeAll(Arrays.asList(srcFiles));
+						
                 entry.getValue().stream().forEach(unit -> {
                     
-                    String reportName = entry.getKey();
                     File unitDir = new File(output_dir, "單位/"+unit);
-                    File[] srcFiles = srcDir.listFiles(
-                            (FileFilter)new WildcardFileFilter(reportName+"(*)"+type.ext));
                     
                     if(srcFiles.length == 1) {
+						// If only one file exists for the report name, get rid of the trailing (n)
                         try {
-                            FileUtils.copyFile(srcFiles[0], new File(unitDir, reportName+type.ext));
+                            FileUtils.copyFile(srcFiles[0], new File(unitDir, "report"+reportName+type.ext));
                         } catch (Exception e) {
                             System.err.println("Error: ["+srcFiles[0].getName()+"] => ["+unit+"]: "+e);
                         }
@@ -179,8 +196,12 @@ public class BasicDataDownloader {
                 });
             });
         }
+		
+		if(!orphanFiles.isEmpty()) {
+			System.err.println("Orphan Files found:");
+			orphanFiles.stream().forEach(f -> System.err.println("  "+f.getName()));
+		}
 
-     
         ((JavascriptExecutor)driver).executeScript("alert('Done!')");
 	}
 
@@ -202,8 +223,8 @@ public class BasicDataDownloader {
             new File(output_dir, folder + "/" + type.name).mkdirs();
         }
 
-        Pattern patReport = Pattern.compile("^(report\\d+(_|-)\\d+((_|-)\\d+)?).*$");
-        Pattern patTable = Pattern.compile(".*(table\\d+(_|-)\\d+((_|-)\\d+)?).*$");
+        Pattern patReport = Pattern.compile("^(report\\d+(_|-)\\d+((_|-)\\d+)*).*$");
+        Pattern patTable = Pattern.compile(".*(table\\d+(_|-)\\d+((_|-)\\d+)*).*$");
 
         // Click each link if not downloaded yet
         List<WebElement> tables = driver.findElements(By.tagName("a"));
