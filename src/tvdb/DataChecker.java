@@ -32,7 +32,15 @@ public class DataChecker {
 	public static void main(String[] args) throws InterruptedException, IOException {
 		new File(output_dir, "檢核").mkdirs();
 		new File(output_dir, "單位").mkdirs();
+
+		downloadCheckers();
 		
+        copyCheckResultToUnits();
+        
+        System.err.println("有部份交叉檢核表不會在名稱上標明所有相關表冊，請逐檔檢查。");
+	}
+
+	private static void downloadCheckers() throws InterruptedException, IOException {
 		WebDriver driver = Utils.createFireFoxDriver();
         
 		Utils.openTvdb(driver, "資料檢核");
@@ -47,7 +55,7 @@ public class DataChecker {
         
         waitFor關閉視窗Button(driver);
         
-        downloadChecker(driver);
+        downloadCurrentGroupOfCheckers(driver, "交叉");
         
         // Other checkers
         
@@ -57,7 +65,7 @@ public class DataChecker {
         
         waitFor關閉視窗Button(driver);
         
-        downloadChecker(driver);
+        downloadCurrentGroupOfCheckers(driver, "其他");
         
         // Statistic checkers
         
@@ -67,28 +75,11 @@ public class DataChecker {
         
         waitFor關閉視窗Button(driver);
         
-        downloadChecker(driver);
-        
-        // Start to copy checker result files to unit folders
-        Map<String, List<String>> tableUnits = new HashMap<String, List<String>>();
-        Map<String, List<String>> tableUnitsNonCurrent = new HashMap<String, List<String>>();
-        Set<String> unitSet = new HashSet<String>();
-        
-		Utils.obtainTableUnitMapping(tableUnits, unitSet);
-		Utils.obtain非當期TableUnitMapping(tableUnitsNonCurrent, unitSet);
-		
-        for(String unit: unitSet) {
-    		new File(output_dir, "單位/"+unit+"/檢核疑義").mkdirs();
-        }
-        
-        tableUnits.putAll(tableUnitsNonCurrent);
-        copyCheckResultToUnits(tableUnits);
-        
-        ((JavascriptExecutor)driver).executeScript("alert('Done! 有部份交叉檢核表不會在名稱上標明所有相關表冊，請逐檔檢查。')");
-        System.err.println("有部份交叉檢核表不會在名稱上標明所有相關表冊，請逐檔檢查。");
+        downloadCurrentGroupOfCheckers(driver, "統計處");
+		((JavascriptExecutor)driver).executeScript("alert('Done! 有部份交叉檢核表不會在名稱上標明所有相關表冊，請逐檔檢查。')");
 	}
-
-	private static void downloadChecker(WebDriver driver) {
+	
+	private static void downloadCurrentGroupOfCheckers(WebDriver driver, String groupName) {
 		// The checker's select-tag reloads every time a item is clicked, thus has to be addressed by index
         Select checkers = new Select(driver.findElement(By.name("TabName")));
         int checkerCount = checkers.getOptions().size();
@@ -111,7 +102,11 @@ public class DataChecker {
         	String optionName = checker.getText().trim();
         	checker.click();
         	
-            waitFor關閉視窗Button(driver);
+			try {
+				waitFor關閉視窗Button(driver);
+			} catch(Exception e) {
+				System.err.println("Error waiting for "+optionName+"; skipped");
+			}
             
             String checkerName = optionName;
             
@@ -120,7 +115,7 @@ public class DataChecker {
             driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
             if(!related.isEmpty()) {
-                checkerName = checkerName+"("+related.get(0).getText().trim()+")";
+                checkerName = checkerName+"["+related.get(0).getText().trim()+"]";
             }
             
             checkerName = checkerName.replace('/', '及');
@@ -128,7 +123,7 @@ public class DataChecker {
             String html = driver.findElement(By.tagName("body")).getText();
             if(!patternNoData1.matcher(html).find() && !patternNoData2.matcher(html).find()) {
             	// Has data
-                File renamed = new File(output_dir, "檢核/"+checkerName+".pdf");
+                File renamed = new File(output_dir, "檢核/"+groupName+"-"+checkerName+".pdf");
                 
                 if(renamed.exists())
                 	continue;
@@ -137,9 +132,6 @@ public class DataChecker {
                 		"var imgs = document.getElementsByTagName('img'); " +
                 		"var len=imgs.length; " +
                 		"for(var i=len-1; i>=0; i--) {imgs[i].parentNode.removeChild(imgs[i]);} " +
-                		"var inputs = document.getElementsByTagName('input'); " +
-                		"var len=inputs.length; " +
-                		"for(var i=len-1; i>=0; i--) {inputs[i].parentNode.removeChild(inputs[i]);} " +
                 		"window.print();");
                 
                 File output = Utils.waitForGeneratedFile(Utils.BULLZIP_DIR);
@@ -153,10 +145,20 @@ public class DataChecker {
         }
 	}
 
-	private static void copyCheckResultToUnits(Map<String, List<String>> tableUnits) {
+	private static void copyCheckResultToUnits() throws IOException {
+        Map<String, List<String>> tableUnits = new HashMap<String, List<String>>();
+        Set<String> unitSet = new HashSet<String>();
+        
+		Utils.obtainTableUnitMapping(tableUnits, unitSet);
+		Utils.obtain非當期TableUnitMapping(tableUnits, unitSet);
+		
+        for(String unit: unitSet) {
+    		new File(output_dir, "單位/"+unit+"/檢核疑義").mkdirs();
+        }
+		
 		File[] checkers = new File(output_dir, "檢核").listFiles();
 		
-		Pattern patRelated = Pattern.compile(".*\\(([^)]*)\\)$");
+		Pattern patRelated = Pattern.compile(".*\\[([^]]*)\\]\\.[a-z]+$");
 		for(File checker: checkers) {
 	        Set<String> units = new HashSet<String>();
 	        String relatedTables;
@@ -166,8 +168,9 @@ public class DataChecker {
 	        }
 	        else {
 	            relatedTables = checker.getName();
-	            if(relatedTables.startsWith("報表")) {
-	                relatedTables = relatedTables.substring(2);
+	            if(relatedTables.startsWith("統計處-報表")) {
+					// lest the leading "報表" confuse the resolution of related tables
+	                relatedTables = relatedTables.substring(6);
 	            }
 	        }
 	        
