@@ -9,7 +9,6 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchWindowException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -35,7 +34,7 @@ public class AssessmentDownloader {
         
         Utils.openTvdb(driver, "評鑑基本資料表");
         driver.findElement(By.partialLinkText("列 印 系 統")).click();
-        driver.findElement(By.partialLinkText("評鑑基本資料表")).click();
+        driver.findElement(By.partialLinkText("科技校院評鑑表冊")).click();
         
         String mainWin = driver.getWindowHandle();
         String newWin = null;
