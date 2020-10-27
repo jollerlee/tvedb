@@ -66,6 +66,8 @@ public class BasicDataDownloader {
         
         Map<String, List<String>> reportUnits = new HashMap<>();
         Utils.obtain報表單位對應表(reportUnits, unitSet);
+
+        Set<String> expectedNoData = Utils.obtain應無資料Tables();
         
         for(String unit: unitSet) {
     		new File(output_dir, "單位/"+unit+"/表冊資料").mkdirs();
@@ -87,7 +89,7 @@ public class BasicDataDownloader {
         		System.err.println("["+tableName+"]: no unit in charge");
         		continue;
         	}
-			
+        	
 			boolean hasData = false;
         	
         	for(OutputType type: EnumSet.allOf(OutputType.class)) {
@@ -97,6 +99,9 @@ public class BasicDataDownloader {
             	
 				if(tableFiles.length != 0) {
 					hasData = true;
+		            if(expectedNoData.contains(tableName)) {
+		                System.err.println("Expected no data but not the case: ["+tableName+"]. Figure it out!");
+		            }
 				}
             	
 				orphanFiles.removeAll(Arrays.asList(tableFiles));
@@ -136,28 +141,33 @@ public class BasicDataDownloader {
 			
 			// Create no-data files
 			if(!hasData) {
-				// Maintain a global list of no-data files
-				Path noData = Paths.get(output_dir.getPath(), "基本資料表", tableName+"-無資料.txt");
-				try {
-					Files.write(noData, 
-						tableUnits.get(tableName).stream().collect(joining("\n")).getBytes(StandardCharsets.UTF_8), 
-						StandardOpenOption.CREATE);
-				}
-				catch(IOException e) {
-					System.err.println("Error creating no-data file for ["+tableName+"]");
-				}
-				
-				// Create no-data files for all relevent units
-            	for(String unit: tableUnits.get(tableName)) {
-					noData = Paths.get(output_dir.getPath(), "單位", unit, "無資料表冊", tableName+".txt");
-					System.out.println("["+tableName+"-無資料] => ["+unit+"]");
-					
-					try {
-						Files.write(noData, ("表 "+tableName+" 沒有填報資料。\n如果確實無須填報，請寄信告知資訊組。").getBytes(StandardCharsets.UTF_8));
-					} catch (IOException e) {
-						System.err.println("No-data: Error creating file for ["+tableName+"] ("+unit+")");
-					}
-				}
+			    if(expectedNoData.contains(tableName)) {
+			        System.out.println("No-data as expected: "+tableName);
+			    }
+			    else {
+	                // Maintain a global list of no-data files
+	                Path noData = Paths.get(output_dir.getPath(), "基本資料表", tableName+"-無資料.txt");
+	                try {
+	                    Files.write(noData, 
+	                        tableUnits.get(tableName).stream().collect(joining("\n")).getBytes(StandardCharsets.UTF_8), 
+	                        StandardOpenOption.CREATE);
+	                }
+	                catch(IOException e) {
+	                    System.err.println("Error creating no-data file for ["+tableName+"]");
+	                }
+	                
+	                // Create no-data files for all relevent units
+	                for(String unit: tableUnits.get(tableName)) {
+	                    noData = Paths.get(output_dir.getPath(), "單位", unit, "無資料表冊", tableName+".txt");
+	                    System.out.println("["+tableName+"-無資料] => ["+unit+"]");
+	                    
+	                    try {
+	                        Files.write(noData, ("表 "+tableName+" 沒有填報資料。\n如果確實無須填報，請寄信告知資訊組。").getBytes(StandardCharsets.UTF_8));
+	                    } catch (IOException e) {
+	                        System.err.println("No-data: Error creating file for ["+tableName+"] ("+unit+")");
+	                    }
+	                }
+			    }
 			}
         }
         

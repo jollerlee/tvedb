@@ -41,9 +41,11 @@ public class 列出目前無資料表及其單位 {
         SortedMap<String, List<String>> tableUnits = new TreeMap<>();
         Set<String> unitSet = new HashSet<String>();
         Utils.obtainTableUnitMapping(tableUnits, unitSet);
+        Set<String> expectedNoData = Utils.obtain應無資料Tables();
         
         tableUnits.keySet().stream()
                 .filter(x -> !tablesWithData.contains(x))
+                .filter(x -> !expectedNoData.contains(x))
                 .forEach(x -> {
                     System.err.println("["+x+"]: " + tableUnits.get(x).stream().collect(joining(",")));
                 });
@@ -55,7 +57,7 @@ public class 列出目前無資料表及其單位 {
         // The map to record found table links and the counts.
         Set<String> foundTables = new HashSet<>();
 
-        Pattern pat = Pattern.compile(".*(table\\d+(_|-)\\d+((_|-)\\d+)?).*$");
+        Pattern pat = Pattern.compile(".*(table\\d+(_|-)\\d+((_|-)\\d+)*).*$");
 
         // Click each link if not downloaded yet
         List<WebElement> tables = driver.findElements(By.tagName("a"));

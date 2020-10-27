@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -254,6 +255,14 @@ public class Utils {
 		doObtainTableUnitMapping(tableUnits, unitSet, "非當期填表單位列表.txt");
 	}
 	
+    static Set<String> obtain應無資料Tables()
+            throws IOException {
+
+        Map<String, List<String>> tableUnitMap = new TreeMap<>();
+        doObtainTableUnitMapping(tableUnitMap, null, "應無資料表冊列表.txt");
+        return tableUnitMap.keySet();
+    }
+    
     static Path getNoDataReasonDir() {
         Calendar cal = Calendar.getInstance();
         int year = cal.get(Calendar.YEAR) - 1911;
