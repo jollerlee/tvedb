@@ -50,6 +50,13 @@ public class 列出目前無資料表及其單位 {
                     System.err.println("["+x+"]: " + tableUnits.get(x).stream().collect(joining(",")));
                 });
         
+        tablesWithData.retainAll(expectedNoData);
+        if(tablesWithData.size() > 0) {
+            System.err.println();
+            System.err.println("Some tables are expected to have no data, but yet have some:");
+            System.err.println();
+            tablesWithData.stream().forEach(x -> System.err.println("["+x+"]"));
+        }
 	}
 
     private static Set<String> getAllLinks(WebDriver driver) {
