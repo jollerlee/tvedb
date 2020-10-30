@@ -1,5 +1,7 @@
 package tvdb;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -17,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -137,7 +140,7 @@ public class Utils {
 		Properties loginProps = new Properties();
 		loginProps.load(Utils.class.getResourceAsStream("login.properties"));
 
-		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 //		Dimension winSize = driver.manage().window().getSize();
 //		Dimension newWinSize = new Dimension(1700, winSize.height);
 //		driver.manage().window().setSize(newWinSize);
@@ -296,8 +299,17 @@ public class Utils {
                 if (line.isEmpty() || line.startsWith("#"))
                     continue;
                 
-				String tableName = line.substring(0, line.indexOf(':'));
-				String unitStr = line.substring(line.indexOf(':') + 1);
+				int indexOfColon = line.indexOf(':');
+				String tableName, unitStr;
+				
+                if(indexOfColon != -1) {
+                    tableName = line.substring(0, indexOfColon);
+                    unitStr = line.substring(indexOfColon + 1);
+                }
+                else {
+                    tableName = line;
+                    unitStr = "";
+                }
 
 				List<String> units;
 
@@ -319,6 +331,17 @@ public class Utils {
 					unitSet.addAll(units);
 			}
 		}
+    }
+
+    static String normalizeCheckerName(String checkerName) {
+        return checkerName.replace('/', '∕');
+    }
+    
+    static Set<String> obtain不得檢出之檢核表() throws IOException {
+        File amountControlMappingFile = new File(TVDB_WORK_DIR, "不得檢出之檢核表.txt");
+        Map<String, List<String>> checkerUnit = new HashMap<>();
+        obtainTableUnitMappingFromFile(checkerUnit, null, amountControlMappingFile);
+        return checkerUnit.keySet().stream().map(Utils::normalizeCheckerName).collect(toSet());
     }
 
 	static void obtain總量管制表單位對應表(Map<String, List<String>> tableUnits, Set<String> unitSet) throws IOException {

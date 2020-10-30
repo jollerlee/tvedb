@@ -23,6 +23,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class DataChecker {
 
     private static final File output_dir = Utils.TVDB_DIR;
+    private static final String unforgivablePrefix = "{不得檢出} ";
     
 	/**
 	 * @param args
@@ -79,8 +80,10 @@ public class DataChecker {
 		((JavascriptExecutor)driver).executeScript("alert('Done! 有部份交叉檢核表不會在名稱上標明所有相關表冊，請逐檔檢查。')");
 	}
 	
-	private static void downloadCurrentGroupOfCheckers(WebDriver driver, String groupName) {
-		// The checker's select-tag reloads every time a item is clicked, thus has to be addressed by index
+	private static void downloadCurrentGroupOfCheckers(WebDriver driver, String groupName) throws IOException {
+		Set<String> unforgivable = Utils.obtain不得檢出之檢核表();
+	    
+	    // The checker's select-tag reloads every time a item is clicked, thus has to be addressed by index
         Select checkers = new Select(driver.findElement(By.name("TabName")));
         int checkerCount = checkers.getOptions().size();
         
@@ -108,7 +111,8 @@ public class DataChecker {
 				System.err.println("Error waiting for "+optionName+"; skipped");
 			}
             
-            String checkerName = optionName;
+            String checkerName = Utils.normalizeCheckerName(optionName);
+            boolean isForgivable = unforgivable.contains(checkerName);
             
             driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
             List<WebElement> related = driver.findElements(By.xpath("//td[text()='相關表冊']/following-sibling::td"));
@@ -117,13 +121,11 @@ public class DataChecker {
             if(!related.isEmpty()) {
                 checkerName = checkerName+"["+related.get(0).getText().trim()+"]";
             }
-            
-            checkerName = checkerName.replace('/', '及');
-            
+           
             String html = driver.findElement(By.tagName("body")).getText();
             if(!patternNoData1.matcher(html).find() && !patternNoData2.matcher(html).find()) {
             	// Has data
-                File renamed = new File(output_dir, "檢核/"+groupName+"-"+checkerName+".pdf");
+                File renamed = new File(output_dir, "檢核/"+(isForgivable? unforgivablePrefix : "")+groupName+"-"+checkerName+".pdf");
                 
                 if(renamed.exists())
                 	continue;
@@ -168,7 +170,7 @@ public class DataChecker {
 	        }
 	        else {
 	            relatedTables = checker.getName();
-	            if(relatedTables.startsWith("統計處-報表")) {
+	            if(relatedTables.startsWith("統計處-報表") || relatedTables.startsWith(unforgivablePrefix+"統計處-報表")) {
 					// lest the leading "報表" confuse the resolution of related tables
 	                relatedTables = relatedTables.substring(6);
 	            }
